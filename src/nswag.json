@@ -1,0 +1,26 @@
+{
+    "runtime": "Net80",
+    "documentGenerator": {
+        "fromDocument": {
+            "url": "$(Url)",
+            "output": null
+        }
+    },
+    "codeGenerators": {
+      "openApiToCSharpClient": {
+        "generateClientClasses": true,
+        "generateClientInterfaces": true,
+        "injectHttpClient": true,
+        "disposeHttpClient": true,
+        "generateExceptionClasses": true,
+        "exceptionClass": "$(Name)Exception",
+        "exposeJsonSerializerSettings": true,
+        "className": "{controller}$(Namespace)",
+        "namespace": "BusinessDomain.$(Name)",
+        "serviceHost": "$(ServiceHost)",
+        "output": "APIClients/$(Name)/$(Name).cs",
+        "dateType": "System.DateTime",
+       "dateTimeType": "System.DateTime"
+      }
+    }
+  }

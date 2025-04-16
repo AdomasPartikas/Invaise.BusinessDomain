@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Invaise.BusinessDomain.API</name>
+    </assembly>
+    <members>
+        <member name="T:Invaise.BusinessDomain.API.Context.InvaiseDbContext">
+            <summary>
+            Initializes a new instance of the <see cref="T:Invaise.BusinessDomain.API.Context.InvaiseDbContext"/> class with the specified options.
+            </summary>
+            <param name="options">The options to configure the database context.</param>
+        </member>
+        <member name="M:Invaise.BusinessDomain.API.Context.InvaiseDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{Invaise.BusinessDomain.API.Context.InvaiseDbContext})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Invaise.BusinessDomain.API.Context.InvaiseDbContext"/> class with the specified options.
+            </summary>
+            <param name="options">The options to configure the database context.</param>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Context.InvaiseDbContext.Users">
+            <summary>
+            Gets or sets the collection of users in the database.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Context.InvaiseDbContext.UserRoles">
+            <summary>
+            Gets or sets the collection of user roles in the database.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Context.InvaiseDbContext.UserPersonalInfos">
+            <summary>
+            Gets or sets the collection of user personal information in the database.
+            </summary>
+        </member>
+        <member name="M:Invaise.BusinessDomain.API.Context.InvaiseDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <summary>
+            Configures the model for the database context.
+            </summary>
+            <param name="modelBuilder">The builder used to construct the model for the database context.</param>
+        </member>
+        <member name="T:Invaise.BusinessDomain.API.Entities.User">
+            <summary>
+            Represents a user entity in the system.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.Id">
+            <summary>
+            Gets or sets the unique identifier for the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.Email">
+            <summary>
+            Gets or sets the email address of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.DisplayName">
+            <summary>
+            Gets or sets the display name of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.PasswordHash">
+            <summary>
+            Gets or sets the hashed password of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.Status">
+            <summary>
+            Gets or sets the status of the user. Default is "ACTIVE".
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.CreatedAt">
+            <summary>
+            Gets or sets the date and time when the user was created.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.UpdatedAt">
+            <summary>
+            Gets or sets the date and time when the user was last updated.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.EmailVerified">
+            <summary>
+            Gets or sets a value indicating whether the user's email is verified.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.User.LastLoginAt">
+            <summary>
+            Gets or sets the date and time when the user last logged in.
+            </summary>
+        </member>
+        <member name="T:Invaise.BusinessDomain.API.Entities.UserPersonalInfo">
+            <summary>
+            Represents the personal information of a user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.UserId">
+            <summary>
+            Gets or sets the unique identifier for the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.LegalFirstName">
+            <summary>
+            Gets or sets the legal first name of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.LegalLastName">
+            <summary>
+            Gets or sets the legal last name of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.DateOfBirth">
+            <summary>
+            Gets or sets the date of birth of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.GovernmentId">
+            <summary>
+            Gets or sets the government-issued ID of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.AddressLine1">
+            <summary>
+            Gets or sets the primary address line of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.AddressLine2">
+            <summary>
+            Gets or sets the secondary address line of the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.City">
+            <summary>
+            Gets or sets the city of the user's address.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.PostalCode">
+            <summary>
+            Gets or sets the postal code of the user's address.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.Country">
+            <summary>
+            Gets or sets the country of the user's address.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.CreatedAt">
+            <summary>
+            Gets or sets the date and time when the record was created.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserPersonalInfo.UpdatedAt">
+            <summary>
+            Gets or sets the date and time when the record was last updated.
+            </summary>
+        </member>
+        <member name="T:Invaise.BusinessDomain.API.Entities.UserRole">
+            <summary>
+            Represents the association between a user and a role within the system.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserRole.UserId">
+            <summary>
+            Gets or sets the unique identifier of the user associated with this role.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserRole.RoleName">
+            <summary>
+            Gets or sets the name of the role assigned to the user.
+            </summary>
+        </member>
+        <member name="P:Invaise.BusinessDomain.API.Entities.UserRole.User">
+            <summary>
+            Gets or sets the user associated with this role.
+            </summary>
+        </member>
+    </members>
+</doc>
