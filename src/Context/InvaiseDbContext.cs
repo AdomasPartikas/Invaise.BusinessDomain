@@ -55,7 +55,7 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
 
         modelBuilder.Entity<Portfolio>()
             .HasOne(p => p.User)
-            .WithMany()
+            .WithMany(u => u.Portfolios)
             .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 

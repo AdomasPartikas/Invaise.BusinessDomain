@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Entities;
@@ -23,6 +24,7 @@ public class Portfolio
     public DateTime? LastUpdated { get; set; }
 
 
+    [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = null!;
     public virtual ICollection<PortfolioStock> PortfolioStocks { get; set; } = new List<PortfolioStock>();
 
