@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using AutoMapper;
 using BusinessDomain.FinnhubAPIClient;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Models;
+using Invaise.BusinessDomain.API.Utils;
 
 namespace Invaise.BusinessDomain.API.Profiles;
 
@@ -18,13 +20,11 @@ public class MarketDataProfile : Profile
         CreateMap<MarketDataDto, MarketData>()
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-        // CreateMap<Quote, MarketDataDto>()
-        //     .ForMember(dest => dest.Symbol, opt => opt.MapFrom(src => src.Symbol))
-        //     .ForMember(dest => dest.Open, opt => opt.MapFrom(src => src.Open))
-        //     .ForMember(dest => dest.Close, opt => opt.MapFrom(src => src.Close))
-        //     .ForMember(dest => dest.High, opt => opt.MapFrom(src => src.High))
-        //     .ForMember(dest => dest.Low, opt => opt.MapFrom(src => src.Low))
-        //     .ForMember(dest => dest.Volume, opt => opt.MapFrom(src => src.Volume))
-        //     .ForMember(dest => dest.Time, opt => opt.MapFrom(src => DateTimeOffset.FromUnixTimeSeconds(src.Time).UtcDateTime));
+        CreateMap<Quote, MarketDataDaily>()
+            .ForMember(dest => dest.Open, opt => opt.MapFrom(src => src.O))
+            .ForMember(dest => dest.Current, opt => opt.MapFrom(src => src.C))
+            .ForMember(dest => dest.High, opt => opt.MapFrom(src => src.H))
+            .ForMember(dest => dest.Low, opt => opt.MapFrom(src => src.L))
+            .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => Utils.DateTimeConverter.UnixTimestampToDateTime(src.T!.Value)));
     }
 }

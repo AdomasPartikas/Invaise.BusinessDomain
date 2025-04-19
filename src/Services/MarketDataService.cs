@@ -12,6 +12,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Invaise.BusinessDomain.API.Services;
 
+public enum CallType
+{
+    MarketDataDaily,
+    CompanyProfile
+}
+
 /// <summary>
 /// Service for handling market data operations.
 /// </summary>
@@ -54,10 +60,7 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
             var freshRecords = group.Where(g => g.Date > latestDate);
 
             foreach (var record in freshRecords)
-            {
-                if(record.Symbol == "AAPL")
-                    Console.WriteLine($"Processing {record.Symbol} - {record.Date}");
-                
+            {   
                 var entity = mapper.Map<MarketData>(record);
                 newEntities.Add(entity);
             }
@@ -74,20 +77,16 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
     }
 
-    public async Task<MarketDataDto> GetStockQuote(string symbol)
-    {        
-        var stockQuote = await finnhubClient.QuoteAsync(symbol);
+    public async Task<bool> IsMarketOpenAsync()
+    {
+        var exchange = "US";
+        var response = await finnhubClient.MarketStatusAsync(exchange);
 
-        var marketData = mapper.Map<MarketDataDto>(stockQuote);
-        // Implementation for retrieving market data from the database
-
-        throw new NotImplementedException("GetStockQuote method is not implemented yet.");
+        return response.IsOpen ?? false;
     }
 
-    private async Task<CompanyProfile2?> GetCompanyProfile(string symbol, int retries = 5, int delay = 1)
+    private async Task<object?> FinnhubCallWithRetries(string symbol, CallType callType, int retries = 5, int delay = 1)
     {
-        var company = new CompanyProfile2();
-
         int retryCount = 0;
 
         do
@@ -96,8 +95,19 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
             try
             {
-                company = await finnhubClient.CompanyProfile2Async(symbol, null, null);
-                return company;
+                object? response = null;
+
+                switch(callType)
+                {
+                    case CallType.MarketDataDaily:
+                        response = await finnhubClient.QuoteAsync(symbol);
+                        break;
+                    case CallType.CompanyProfile:
+                        response = await finnhubClient.CompanyProfile2Async(symbol, null, null);
+                        break;
+                }
+
+                return response;
             }
             catch (FinnhubAPIClientException ex)
             {
@@ -119,7 +129,47 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
         } while (retryCount < retries);
 
-        return company;
+        return null;
+    }
+
+    public async Task ImportMarketDataDailyAsync()
+    {
+        if(!await IsMarketOpenAsync())
+        {
+            Console.WriteLine("Market is closed. Skipping import.");
+
+            await dbService.TruncateMarketDataDailyAsync();
+
+            return;
+        }
+
+        var symbols = (await dbService.GetAllUniqueMarketDataSymbolsAsync())
+            .OrderBy(symbol => symbol)
+            .ToList();
+
+        var retries = GlobalConstants.Retries;
+        var delay = GlobalConstants.RetryDelaySeconds;
+
+        foreach (var symbol in symbols)
+        {
+            var response = await FinnhubCallWithRetries(symbol, CallType.MarketDataDaily, retries, delay);
+
+
+            if (response is Quote quote && quote != null)
+            {
+                var marketDataDaily = mapper.Map<MarketDataDaily>(quote);
+
+                marketDataDaily.Symbol = symbol;
+
+                var existingMarketDataDaily = await context.MarketDataDaily
+                    .FirstOrDefaultAsync(m => m.Symbol == symbol && m.Timestamp == marketDataDaily.Timestamp);
+
+                if (existingMarketDataDaily == null)
+                    context.MarketDataDaily.Add(marketDataDaily);
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 
     public async Task ImportCompanyDataAsync()
@@ -147,15 +197,14 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
                 context.Companies.Add(existingCompany);
             }
 
-            var company = await GetCompanyProfile(symbol, retries, delay);
+            var company = await FinnhubCallWithRetries(symbol, CallType.CompanyProfile, retries, delay);
 
-            if (company != null)
+            if (company is CompanyProfile2 companyProfile && companyProfile != null)
             {
-                mapper.Map(company, existingCompany);
+                mapper.Map(companyProfile, existingCompany);
             }
         }
 
         await context.SaveChangesAsync();
-        Console.WriteLine($"Inserted {context.ChangeTracker.Entries<Entities.Company>().Count()} new company records.");
     }
 }

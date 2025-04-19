@@ -23,4 +23,9 @@ public interface IDatabaseService
     /// <returns>A task that represents the asynchronous operation. 
     /// The task result contains an enumerable collection of market data for the specified symbol and date range.</returns>
     Task<IEnumerable<MarketData>> GetMarketDataAsync(string symbol, DateTime? start, DateTime? end);
+
+    /// <summary>
+    /// Truncates the daily market data table asynchronously.
+    /// </summary>
+    Task TruncateMarketDataDailyAsync();
 }

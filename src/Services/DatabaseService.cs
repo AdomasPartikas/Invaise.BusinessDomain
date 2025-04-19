@@ -61,4 +61,15 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
 
         return await query.OrderBy(m => m.Date).ToListAsync();
     }
+
+    public async Task TruncateMarketDataDailyAsync()
+    {
+        var tableCount = await context.MarketDataDaily.CountAsync();
+
+        if (tableCount == 0)
+            return;
+        
+        await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE MARKETDATADAILY;");
+        await context.SaveChangesAsync();
+    }
 }

@@ -71,8 +71,11 @@ using (var scope = app.Services.CreateScope())
     //await marketDataService.FetchAndImportMarketDataAsync();
     Console.WriteLine("SMP Dataset Cleanup Completed.");
 
-    await marketDataService.ImportCompanyDataAsync();
+    //await marketDataService.ImportCompanyDataAsync();
     Console.WriteLine("Company Data Import Completed.");
+
+    await marketDataService.ImportMarketDataDailyAsync();
+    Console.WriteLine("Market Data Daily Import Completed.");
 }
 
 app.UseHangfireDashboard();
@@ -82,9 +85,14 @@ app.UseHangfireServer();
 #pragma warning restore CS0618 // Type or member is obsolete
 
 RecurringJob.AddOrUpdate<IMarketDataService>(
-    "refresh-market-data",
+    "refresh-historical-market-data",
     service => service.FetchAndImportMarketDataAsync(),
     "0 0 * * *");
+
+RecurringJob.AddOrUpdate<IMarketDataService>(
+    "refresh-daily-market-data",
+    service => service.ImportMarketDataDailyAsync(),
+    "*/5 * * * *");
 
 app.UseCors("AllowSpecificOrigin");
 
