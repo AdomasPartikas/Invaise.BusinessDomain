@@ -15,13 +15,13 @@ namespace Invaise.BusinessDomain.API.Services;
 /// <summary>
 /// Service for handling market data operations.
 /// </summary>
-public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, InvaiseDbContext context, IKaggleService kaggleService, IDataService dataService) : IMarketDataService
+public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, InvaiseDbContext context, IKaggleService kaggleService, IDataService dataService, IDatabaseService dbService) : IMarketDataService
 {
     public async Task FetchAndImportMarketDataAsync()
     {
-        //await kaggleService.DownloadDatasetAsync(GlobalConstants.KaggleSmpDataset);
+        await kaggleService.DownloadDatasetAsync(GlobalConstants.KaggleSmpDataset);
 
-        //await dataService.SMPDatasetCleanupAsync();
+        await dataService.SMPDatasetCleanupAsync();
 
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var dataPath = Path.GetFullPath(Path.Combine(baseDirectory, GlobalConstants.DataFolder));
@@ -82,5 +82,80 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
         var marketData = mapper.Map<MarketDataDto>(stockQuote);
         // Implementation for retrieving market data from the database
+    }
+
+    private async Task<CompanyProfile2?> GetCompanyProfile(string symbol, int retries = 5, int delay = 1)
+    {
+        var company = new CompanyProfile2();
+
+        int retryCount = 0;
+
+        do
+        {
+            await Task.Delay(delay * 5);
+
+            try
+            {
+                company = await finnhubClient.CompanyProfile2Async(symbol, null, null);
+                return company;
+            }
+            catch (FinnhubAPIClientException ex)
+            {
+                if (ex.StatusCode == 429)
+                {
+                    retryCount++;
+                    await Task.Delay(TimeSpan.FromSeconds(delay));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching company data for {symbol}: {ex.Message}");
+                return null;
+            }
+
+        } while (retryCount < retries);
+
+        return company;
+    }
+
+    public async Task ImportCompanyDataAsync()
+    {
+        var symbols = (await dbService.GetAllUniqueMarketDataSymbolsAsync())
+            .OrderBy(symbol => symbol)
+            .ToList();
+
+        var retries = GlobalConstants.Retries;
+        var delay = GlobalConstants.RetryDelaySeconds;
+
+        foreach (var symbol in symbols)
+        {
+            var existingCompany = await context.Companies
+                .FirstOrDefaultAsync(c => c.Symbol == symbol);
+
+            if (existingCompany != null && existingCompany.Name != null && existingCompany.Description != null && 
+                existingCompany.Country != null && existingCompany.Industry != null && existingCompany.Symbol != null)
+            {
+                continue;
+            }
+            else if (existingCompany == null)
+            {
+                existingCompany = new Entities.Company { Symbol = symbol };
+                context.Companies.Add(existingCompany);
+            }
+
+            var company = await GetCompanyProfile(symbol, retries, delay);
+
+            if (company != null)
+            {
+                mapper.Map(company, existingCompany);
+            }
+        }
+
+        await context.SaveChangesAsync();
+        Console.WriteLine($"Inserted {context.ChangeTracker.Entries<Entities.Company>().Count()} new company records.");
     }
 }

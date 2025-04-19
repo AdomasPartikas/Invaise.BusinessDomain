@@ -47,11 +47,13 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddHttpClient<IFinnhubClient, FinnhubClient>(client =>
 {
     client.DefaultRequestHeaders.Add("X-Finnhub-Token", builder.Configuration["FinnhubKey"]);
+    client.BaseAddress = new Uri(GlobalConstants.FinnhubUrl);
 });
 
 builder.Services.AddScoped<IKaggleService, KaggleService>();
 builder.Services.AddScoped<IDataService, DataService>();
 builder.Services.AddScoped<IMarketDataService, MarketDataService>();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 
 builder.Services.AddHangfire(config =>
 {
@@ -65,9 +67,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var marketDataService = scope.ServiceProvider.GetRequiredService<IMarketDataService>();
-    await marketDataService.FetchAndImportMarketDataAsync();
 
+    //await marketDataService.FetchAndImportMarketDataAsync();
     Console.WriteLine("SMP Dataset Cleanup Completed.");
+
+    await marketDataService.ImportCompanyDataAsync();
+    Console.WriteLine("Company Data Import Completed.");
 }
 
 app.UseHangfireDashboard();

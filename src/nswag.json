@@ -10,6 +10,8 @@
       "openApiToCSharpClient": {
         "generateClientClasses": true,
         "generateClientInterfaces": true,
+        "useBaseUrl": false,
+        "generateBaseUrlProperty": false,
         "injectHttpClient": true,
         "disposeHttpClient": true,
         "generateExceptionClasses": true,

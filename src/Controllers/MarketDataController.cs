@@ -2,6 +2,8 @@ using Invaise.BusinessDomain.API.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Invaise.BusinessDomain.API.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
+using Invaise.BusinessDomain.API.Interfaces;
 
 namespace Invaise.BusinessDomain.API.Controllers;
 
@@ -10,14 +12,8 @@ namespace Invaise.BusinessDomain.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class MarketDataController : ControllerBase
+public class MarketDataController(IDatabaseService dbService) : ControllerBase
 {
-    private readonly InvaiseDbContext context;
-
-    public MarketDataController(InvaiseDbContext context)
-    {
-        this.context = context;
-    }
 
     /// <summary>
     /// Retrieves market data based on the provided query parameters.
@@ -30,18 +26,10 @@ public class MarketDataController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<MarketData>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMarketData([FromQuery] string symbol, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
     {
-        var query = context.MarketData.AsQueryable();
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
 
-        if (!string.IsNullOrEmpty(symbol))
-            query = query.Where(m => m.Symbol == symbol);
-
-        if (start.HasValue)
-            query = query.Where(m => m.Date >= start.Value);
-
-        if (end.HasValue)
-            query = query.Where(m => m.Date <= end.Value);
-
-        var results = await query.OrderBy(m => m.Date).ToListAsync();
+        var results = await dbService.GetMarketDataAsync(symbol, start, end);
 
         return Ok(results);
     }
@@ -54,10 +42,10 @@ public class MarketDataController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUniqueSymbols()
     {
-        var symbols = await context.MarketData
-            .Select(m => m.Symbol)
-            .Distinct()
-            .ToListAsync();
+        var symbols = await dbService.GetAllUniqueMarketDataSymbolsAsync();
+
+        if (symbols == null || !symbols.Any())
+            return NotFound("No symbols found.");
 
         return Ok(symbols);
     }

@@ -4,6 +4,7 @@ namespace Invaise.BusinessDomain.API.Constants
     {
         //Urls
         public const string KaggleUrl = "https://www.kaggle.com";
+        public const string FinnhubUrl = "https://finnhub.io/api/v1/";
 
         //Datasets
         public const string KaggleSmpDataset = "yash16jr/s-and-p500-daily-update-dataset";
@@ -18,6 +19,10 @@ namespace Invaise.BusinessDomain.API.Constants
         //Dataset constants
         public const int TickerCount = 503;
         public const int PriceBlocks = 5;
+
+        //Service constants
+        public const int Retries = 3;
+        public const int RetryDelaySeconds = 50;
 
     }
 }
