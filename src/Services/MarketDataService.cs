@@ -74,14 +74,14 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
     }
 
-    public async Task<IEnumerable<MarketDataDto>> GetStockQuote(string symbol)
-    {
-        throw new NotImplementedException();
-        
+    public async Task<MarketDataDto> GetStockQuote(string symbol)
+    {        
         var stockQuote = await finnhubClient.QuoteAsync(symbol);
 
         var marketData = mapper.Map<MarketDataDto>(stockQuote);
         // Implementation for retrieving market data from the database
+
+        throw new NotImplementedException("GetStockQuote method is not implemented yet.");
     }
 
     private async Task<CompanyProfile2?> GetCompanyProfile(string symbol, int retries = 5, int delay = 1)

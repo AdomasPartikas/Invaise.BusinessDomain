@@ -27,6 +27,8 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
     /// </summary>
     public DbSet<MarketData> MarketData { get; set; } = null!;
 
+    public DbSet<MarketDataDaily> MarketDataDaily { get; set; } = null!;
+
     public DbSet<Company> Companies { get; set; } = null!;
     public DbSet<Portfolio> Portfolios { get; set; } = null!;
     public DbSet<PortfolioStock> PortfolioStocks { get; set; } = null!;
@@ -51,6 +53,9 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<MarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Date })
+            .IsUnique());
+
+        modelBuilder.Entity<MarketDataDaily>(entity => entity.HasIndex(e => new { e.Symbol, e.Timestamp })
             .IsUnique());
 
         modelBuilder.Entity<Portfolio>()
