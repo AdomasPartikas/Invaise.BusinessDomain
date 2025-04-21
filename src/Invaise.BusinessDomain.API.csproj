@@ -48,11 +48,29 @@
 
   <Target Name="NSwag" AfterTargets="BeforeBuild;BeforeRebuild">
     <Exec Command="mkdir APIClients" ContinueOnError="WarnAndContinue" Condition="!Exists('APIClients')" />
+
     <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=APIClients/FinnhubAPIClient/FinnhubAPIClient.json,ServiceHost=https://finnhub.io,Name=FinnhubAPIClient,Namespace=FinnhubClient" Condition="!Exists('APIClients/FinnhubAPIClient/FinnhubAPIClient.cs')">
       <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>
+
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8001/openapi.json,ServiceHost=http://localhost:8001,Name=GaiaAPIClient,Namespace=GaiaClient" Condition="!Exists('APIClients/GaiaAPIClient/GaiaAPIClient.cs')">
+      <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
+    </Exec>
+
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8002/openapi.json,ServiceHost=http://localhost:8002,Name=ApolloAPIClient,Namespace=ApolloClient" Condition="!Exists('APIClients/ApolloAPIClient/ApolloAPIClient.cs')">
+      <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
+    </Exec>
+
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8003/openapi.json,ServiceHost=http://localhost:8003,Name=IgnisAPIClient,Namespace=IgnisClient" Condition="!Exists('APIClients/IgnisAPIClient/IgnisAPIClient.cs')">
+      <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
+    </Exec>
+
   </Target>
+  
 
   <ItemGroup>
     <Compile Include="APIClients\*.cs" KeepDuplicates="false" />

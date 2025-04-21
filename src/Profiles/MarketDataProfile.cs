@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using AutoMapper;
-using BusinessDomain.FinnhubAPIClient;
+using Invaise.BusinessDomain.API.FinnhubAPIClient;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Models;
 using Invaise.BusinessDomain.API.Utils;

@@ -15,6 +15,11 @@ public interface IDatabaseService
     Task<IEnumerable<string>> GetAllUniqueMarketDataSymbolsAsync();
 
     /// <summary>
+    /// Retrieves intraday market data for a specific symbol within an optional date range asynchronously.
+    /// </summary>
+    Task<IEnumerable<IntradayMarketData>> GetIntradayMarketDataAsync(string symbol, DateTime? start, DateTime? end);
+
+    /// <summary>
     /// Retrieves market data for a specific symbol within an optional date range asynchronously.
     /// </summary>
     /// <param name="symbol">The market data symbol to retrieve data for.</param>

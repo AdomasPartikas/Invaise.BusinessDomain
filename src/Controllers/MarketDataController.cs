@@ -35,6 +35,25 @@ public class MarketDataController(IDatabaseService dbService) : ControllerBase
     }
 
     /// <summary>
+    /// Retrieves intraday market data based on the provided query parameters.
+    /// </summary>
+    /// <param name="symbol">The symbol to filter the market data.</param>
+    /// <param name="start">The start date for the market data range.</param>
+    /// <param name="end">The end date for the market data range.</param>
+    /// <returns> A list of intraday market data matching the query parameters.</returns>
+    [HttpGet("GetIntradayMarketData")]
+    [ProducesResponseType(typeof(IEnumerable<IntradayMarketData>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetIntradayMarketData([FromQuery] string symbol, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
+    {
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
+
+        var results = await dbService.GetIntradayMarketDataAsync(symbol, start, end);
+
+        return Ok(results);
+    }
+
+    /// <summary>
     /// Retrieves all unique symbols from the market data.
     /// /// </summary>
     /// <returns>A list of unique symbols.</returns>

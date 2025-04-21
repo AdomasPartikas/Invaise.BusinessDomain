@@ -1,7 +1,7 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using AutoMapper;
-using BusinessDomain.FinnhubAPIClient;
+using Invaise.BusinessDomain.API.FinnhubAPIClient;
 using System.Globalization;
 using Invaise.BusinessDomain.API.Context;
 using Invaise.BusinessDomain.API.Interfaces;

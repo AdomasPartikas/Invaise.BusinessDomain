@@ -18,7 +18,7 @@
         "exceptionClass": "$(Name)Exception",
         "exposeJsonSerializerSettings": true,
         "className": "{controller}$(Namespace)",
-        "namespace": "BusinessDomain.$(Name)",
+        "namespace": "Invaise.BusinessDomain.API.$(Name)",
         "serviceHost": "$(ServiceHost)",
         "output": "APIClients/$(Name)/$(Name).cs",
         "dateType": "System.DateTime",

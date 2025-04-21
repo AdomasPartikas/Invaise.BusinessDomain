@@ -36,6 +36,22 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         return symbols;
     }
 
+    public async Task<IEnumerable<IntradayMarketData>> GetIntradayMarketDataAsync(string symbol, DateTime? start, DateTime? end)
+    {
+        var query = context.IntradayMarketData.AsQueryable();
+
+        if (!string.IsNullOrEmpty(symbol))
+            query = query.Where(m => m.Symbol == symbol);
+
+        if (start.HasValue)
+            query = query.Where(m => m.Timestamp >= start.Value);
+
+        if (end.HasValue)
+            query = query.Where(m => m.Timestamp <= end.Value);
+
+        return await query.OrderBy(m => m.Timestamp).ToListAsync();
+    }
+
     /// <summary>
     /// Retrieves a collection of market data filtered by the specified criteria.
     /// </summary>

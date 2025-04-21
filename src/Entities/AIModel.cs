@@ -54,4 +54,16 @@ public class AIModel
     /// </summary>
     public DateTime? LastUpdated { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date and time when the AI model was last trained.
+    /// This field is optional.
+    /// </summary>
+    public DateTime? LastTrainedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the current version of the AI model.
+    /// This field is optional.
+    /// </summary>
+    [MaxLength(100)]
+    public string? Version { get; set; }
 }

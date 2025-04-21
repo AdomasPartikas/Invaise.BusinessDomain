@@ -1,17 +1,17 @@
-using BusinessDomain.FinnhubAPIClient;
+using Invaise.BusinessDomain.API.FinnhubAPIClient;
+using Invaise.BusinessDomain.API.GaiaAPIClient;
+using Invaise.BusinessDomain.API.ApolloAPIClient;
 using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
 using Hangfire.MemoryStorage;
-using Invaise.BusinessDomain.API.Constants;
 using Invaise.BusinessDomain.API.Interfaces;
 using Invaise.BusinessDomain.API.Services;
-using Invaise.BusinessDomain.API.Enums;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Sinks.MariaDB.Extensions;
 using Serilog.Sinks.MariaDB;
-using Serilog.Enrichers;
+
 
 // Enable Serilog self-logging to see internal errors
 SelfLog.Enable(msg => Console.WriteLine($"Serilog Internal Error: {msg}"));
@@ -46,7 +46,7 @@ try
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-        .MinimumLevel.Override("Hangfire", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("Hangfire", Serilog.Events.LogEventLevel.Error)
         .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
         .Enrich.FromLogContext()
         //.Enrich.WithProperty("LogLevel", Serilog.Events.LogEventLevel.Information.ToString())
@@ -110,7 +110,12 @@ try
     builder.Services.AddHttpClient<IFinnhubClient, FinnhubClient>(client =>
     {
         client.DefaultRequestHeaders.Add("X-Finnhub-Token", builder.Configuration["FinnhubKey"]);
-        client.BaseAddress = new Uri(GlobalConstants.FinnhubUrl);
+        client.BaseAddress = new Uri(builder.Configuration["FinnhubBaseUrl"] ?? throw new InvalidOperationException("Finnhub base URL not configured"));
+    });
+
+    builder.Services.AddHttpClient<IHealthGaiaClient, HealthGaiaClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
     });
 
     builder.Services.AddScoped<IKaggleService, KaggleService>();
@@ -133,8 +138,8 @@ try
 
         Log.Debug("Starting initial data import... Please wait.");
 
-        await marketDataService.FetchAndImportHistoricalMarketDataAsync();
-        await marketDataService.ImportCompanyDataAsync();
+        //await marketDataService.FetchAndImportHistoricalMarketDataAsync();
+        //await marketDataService.ImportCompanyDataAsync();
 
         Log.Debug("Initial data import completed.");
     }
@@ -155,6 +160,13 @@ try
         service => service.ImportIntradayMarketDataAsync(),
         "*/5 * * * *");
 
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
     app.UseCors("AllowSpecificOrigin");
 
     app.UseRouting();
@@ -170,7 +182,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application start-up failed.");
+    Log.Fatal(ex, "Host terminated unexpectedly");
 }
 finally
 {

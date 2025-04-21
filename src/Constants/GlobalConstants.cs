@@ -2,10 +2,6 @@ namespace Invaise.BusinessDomain.API.Constants
 {
     public static class GlobalConstants
     {
-        //Urls
-        public const string KaggleUrl = "https://www.kaggle.com";
-        public const string FinnhubUrl = "https://finnhub.io/api/v1/";
-
         //Datasets
         public const string KaggleSmpDataset = "yash16jr/s-and-p500-daily-update-dataset";
 
