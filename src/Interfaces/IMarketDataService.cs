@@ -18,7 +18,7 @@ public interface IMarketDataService
     /// <summary>
     /// Fetches historical market data for all symbols and imports it into the database.
     /// </summary>
-    Task FetchAndImportMarketDataAsync();
+    Task FetchAndImportHistoricalMarketDataAsync();
 
     /// <summary>
     /// Imports company data into the database.
@@ -28,5 +28,5 @@ public interface IMarketDataService
     /// <summary>
     /// Imports daily market data into the database.
     /// </summary>
-    Task ImportMarketDataDailyAsync();
+    Task ImportIntradayMarketDataAsync();
 }

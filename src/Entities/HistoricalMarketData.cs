@@ -5,7 +5,7 @@ namespace Invaise.BusinessDomain.API.Entities;
 /// <summary>
 /// Represents market data for a specific financial instrument.
 /// </summary>
-public class MarketData
+public class HistoricalMarketData
 {
     /// <summary>
     /// Gets or sets the unique identifier for the market data entry.
@@ -28,32 +28,27 @@ public class MarketData
     /// <summary>
     /// Gets or sets the opening price of the financial instrument.
     /// </summary>
-    [Required]
-    public decimal Open { get; set; }
+    public decimal? Open { get; set; }
 
     /// <summary>
     /// Gets or sets the highest price of the financial instrument during the day.
     /// </summary>
-    [Required]
-    public decimal High { get; set; }
+    public decimal? High { get; set; }
 
     /// <summary>
     /// Gets or sets the lowest price of the financial instrument during the day.
     /// </summary>
-    [Required]
-    public decimal Low { get; set; }
+    public decimal? Low { get; set; }
 
     /// <summary>
     /// Gets or sets the closing price of the financial instrument.
     /// </summary>
-    [Required]
-    public decimal Close { get; set; }
+    public decimal? Close { get; set; }
 
     /// <summary>
     /// Gets or sets the trading volume of the financial instrument.
     /// </summary>
-    [Required]
-    public long Volume { get; set; }
+    public long? Volume { get; set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the market data entry was created.

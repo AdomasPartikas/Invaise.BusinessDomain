@@ -22,14 +22,14 @@ public class MarketDataController(IDatabaseService dbService) : ControllerBase
     /// <param name="start">The start date for the market data range.</param>
     /// <param name="end">The end date for the market data range.</param>
     /// <returns>A list of market data matching the query parameters.</returns>
-    [HttpGet("GetMarketData")]
-    [ProducesResponseType(typeof(IEnumerable<MarketData>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMarketData([FromQuery] string symbol, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
+    [HttpGet("GetHistoricalMarketData")]
+    [ProducesResponseType(typeof(IEnumerable<HistoricalMarketData>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetHistoricalMarketData([FromQuery] string symbol, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
     {
         if (string.IsNullOrEmpty(symbol))
             return BadRequest("Symbol is required.");
 
-        var results = await dbService.GetMarketDataAsync(symbol, start, end);
+        var results = await dbService.GetHistoricalMarketDataAsync(symbol, start, end);
 
         return Ok(results);
     }

@@ -25,16 +25,19 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
     /// <summary>
     /// Gets or sets the collection of market data in the database.
     /// </summary>
-    public DbSet<MarketData> MarketData { get; set; } = null!;
+    public DbSet<HistoricalMarketData> HistoricalMarketData { get; set; } = null!;
 
-    public DbSet<MarketDataDaily> MarketDataDaily { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of intraday market data in the database.
+    /// </summary>
+    public DbSet<IntradayMarketData> IntradayMarketData { get; set; } = null!;
 
     public DbSet<Company> Companies { get; set; } = null!;
     public DbSet<Portfolio> Portfolios { get; set; } = null!;
     public DbSet<PortfolioStock> PortfolioStocks { get; set; } = null!;
     public DbSet<Transaction> Transactions { get; set; } = null!;
     public DbSet<PortfolioHealth> PortfolioHealth { get; set; } = null!;
-    public DbSet<LogEntry> LogEntries { get; set; } = null!;
+    public DbSet<Log> LogEvents { get; set; } = null!;
 
 
     /// <summary>
@@ -52,10 +55,10 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
             .HasForeignKey<UserPersonalInfo>(pi => pi.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<MarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Date })
+        modelBuilder.Entity<HistoricalMarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Date })
             .IsUnique());
 
-        modelBuilder.Entity<MarketDataDaily>(entity => entity.HasIndex(e => new { e.Symbol, e.Timestamp })
+        modelBuilder.Entity<IntradayMarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Timestamp })
             .IsUnique());
 
         modelBuilder.Entity<Portfolio>()
@@ -89,10 +92,8 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
             .WithMany()
             .HasForeignKey("PortfolioId");
 
-        modelBuilder.Entity<LogEntry>()
-            .HasOne(l => l.User)
-            .WithMany()
-            .HasForeignKey(l => l.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Log>()
+            .ToTable("LogEvents")
+            .HasKey(l => l.Id);
     }
 }

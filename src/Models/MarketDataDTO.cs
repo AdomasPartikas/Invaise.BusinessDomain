@@ -19,27 +19,27 @@ public class MarketDataDto
     /// <summary>
     /// Gets or sets the opening price of the financial instrument.
     /// </summary>
-    public decimal Open { get; set; }
+    public decimal? Open { get; set; }
 
     /// <summary>
     /// Gets or sets the highest price of the financial instrument during the day.
     /// </summary>
-    public decimal High { get; set; }
+    public decimal? High { get; set; }
 
     /// <summary>
     /// Gets or sets the lowest price of the financial instrument during the day.
     /// </summary>
-    public decimal Low { get; set; }
+    public decimal? Low { get; set; }
 
     /// <summary>
     /// Gets or sets the closing price of the financial instrument.
     /// </summary>
-    public decimal Close { get; set; }
+    public decimal? Close { get; set; }
 
     /// <summary>
     /// Gets or sets the trading volume of the financial instrument.
     /// </summary>
-    public double Volume { get; set; }
+    public double? Volume { get; set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the market data entry was created.

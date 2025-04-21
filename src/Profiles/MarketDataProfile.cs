@@ -17,10 +17,10 @@ public class MarketDataProfile : Profile
     /// </summary>
     public MarketDataProfile()
     {
-        CreateMap<MarketDataDto, MarketData>()
+        CreateMap<MarketDataDto, HistoricalMarketData>()
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-        CreateMap<Quote, MarketDataDaily>()
+        CreateMap<Quote, IntradayMarketData>()
             .ForMember(dest => dest.Open, opt => opt.MapFrom(src => src.O))
             .ForMember(dest => dest.Current, opt => opt.MapFrom(src => src.C))
             .ForMember(dest => dest.High, opt => opt.MapFrom(src => src.H))

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Invaise.BusinessDomain.API.Entities;
 
-public class MarketDataDaily
+public class IntradayMarketData
 {
     /// <summary>
     /// Represents market data for a specific financial instrument.

@@ -28,7 +28,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     /// </remarks>
     public async Task<IEnumerable<string>> GetAllUniqueMarketDataSymbolsAsync()
     {
-        var symbols = await context.MarketData
+        var symbols = await context.HistoricalMarketData
             .Select(m => m.Symbol)
             .Distinct()
             .ToListAsync();
@@ -46,9 +46,9 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     /// A task that represents the asynchronous operation. The task result contains an 
     /// <see cref="IEnumerable{MarketData}"/> of market data ordered by date.
     /// </returns>
-    public async Task<IEnumerable<MarketData>> GetMarketDataAsync(string symbol, DateTime? start, DateTime? end)
+    public async Task<IEnumerable<HistoricalMarketData>> GetHistoricalMarketDataAsync(string symbol, DateTime? start, DateTime? end)
     {
-        var query = context.MarketData.AsQueryable();
+        var query = context.HistoricalMarketData.AsQueryable();
 
         if (!string.IsNullOrEmpty(symbol))
             query = query.Where(m => m.Symbol == symbol);
@@ -60,16 +60,5 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
             query = query.Where(m => m.Date <= end.Value);
 
         return await query.OrderBy(m => m.Date).ToListAsync();
-    }
-
-    public async Task TruncateMarketDataDailyAsync()
-    {
-        var tableCount = await context.MarketDataDaily.CountAsync();
-
-        if (tableCount == 0)
-            return;
-        
-        await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE MARKETDATADAILY;");
-        await context.SaveChangesAsync();
     }
 }
