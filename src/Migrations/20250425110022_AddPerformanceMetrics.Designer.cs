@@ -4,6 +4,7 @@ using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invaise.BusinessDomain.API.Migrations
 {
     [DbContext(typeof(InvaiseDbContext))]
-    partial class InvaiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250425110022_AddPerformanceMetrics")]
+    partial class AddPerformanceMetrics
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,10 +120,6 @@ namespace Invaise.BusinessDomain.API.Migrations
 
                     b.Property<int>("Confidence")
                         .HasColumnType("int");
-
-                    b.Property<string>("Direction")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Explanation")
                         .HasColumnType("longtext");

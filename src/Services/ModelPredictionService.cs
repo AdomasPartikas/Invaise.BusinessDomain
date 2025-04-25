@@ -204,58 +204,6 @@ public class ModelPredictionService(
         }
     }
 
-    /// <inheritdoc />
-    public async Task<Dictionary<string, Dictionary<string, Prediction>>> RefreshPredictionsAsync(IEnumerable<string> symbols)
-    {
-        var result = new Dictionary<string, Dictionary<string, Prediction>>();
-        var symbolsList = symbols.ToList();
-        
-        try
-        {
-            // Get predictions from Apollo (daily predictor) for all symbols
-            var apolloPredictions = await FetchAndStorePredictionsFromApollo(symbolsList);
-            
-            // Get predictions from Ignis (real-time predictor) for all symbols
-            var ignisPredictions = await FetchAndStorePredictionsFromIgnis(symbolsList);
-            
-            // Get predictions from Gaia (ensemble predictor) for all symbols
-            var gaiaPredictions = await FetchAndStorePredictionsFromGaia(symbolsList);
-            
-            // Organize results by symbol
-            foreach (var symbol in symbolsList)
-            {
-                var symbolPredictions = new Dictionary<string, Prediction>();
-                
-                if (apolloPredictions.TryGetValue(symbol, out var apolloPrediction))
-                {
-                    symbolPredictions[APOLLO_SOURCE] = apolloPrediction;
-                }
-                
-                if (ignisPredictions.TryGetValue(symbol, out var ignisPrediction))
-                {
-                    symbolPredictions[IGNIS_SOURCE] = ignisPrediction;
-                }
-                
-                if (gaiaPredictions.TryGetValue(symbol, out var gaiaPrediction))
-                {
-                    symbolPredictions[GAIA_SOURCE] = gaiaPrediction;
-                }
-                
-                if (symbolPredictions.Count > 0)
-                {
-                    result[symbol] = symbolPredictions;
-                }
-            }
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error refreshing predictions for multiple symbols");
-            return result;
-        }
-    }
-
     #region Private Helper Methods
 
     private async Task<Prediction?> FetchAndStorePredictionFromApollo(string symbol)
@@ -263,9 +211,9 @@ public class ModelPredictionService(
         try
         {
             // Get heat prediction from Apollo service
-            var heat = await apolloService.GetHeatPredictionAsync(symbol);
+            var response = await apolloService.GetHeatPredictionAsync(symbol);
 
-            if (heat is null) return null;
+            if (response is null) return null;
             
             // Get current price for the symbol from market data service
             var historicalMarketDataLatest = await databaseService.GetLatestHistoricalMarketDataAsync(symbol);
@@ -278,10 +226,10 @@ public class ModelPredictionService(
                 ModelSource = APOLLO_SOURCE,
                 Timestamp = DateTime.UtcNow,
                 ModelVersion = await apolloService.GetModelVersionAsync(),
-                PredictionTarget = DateTime.UtcNow.Date.AddDays(1), // Apollo predicts for next day
+                PredictionTarget = DateTime.UtcNow.Date.AddDays(30), // Apollo predicts for next month
                 CurrentPrice = currentPrice,
-                PredictedPrice = (heat?.HeatScore ?? 0) > 0.5 ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example
-                Heat = heat
+                PredictedPrice = (decimal)response.Value.Item2, // Simple example
+                Heat = response.Value.Item1
             };
             
             await StorePredictionAsync(prediction);
@@ -299,9 +247,9 @@ public class ModelPredictionService(
         try
         {
             // Get heat prediction from Ignis service
-            var heat = await ignisService.GetHeatPredictionAsync(symbol);
+            var response = await ignisService.GetHeatPredictionAsync(symbol);
             
-            if (heat is null) return null;
+            if (response is null) return null;
             
             // Get current price for the symbol from market data service
             var intradayMarketDataLatest = await databaseService.GetLatestIntradayMarketDataAsync(symbol);
@@ -316,8 +264,8 @@ public class ModelPredictionService(
                 ModelVersion = await ignisService.GetModelVersionAsync(),
                 PredictionTarget = DateTime.UtcNow.Date.AddMinutes(IgnisConstants.IgnisPredictionPeriod), // Ignis is real-time, so target is current time
                 CurrentPrice = currentPrice,
-                PredictedPrice = (heat?.HeatScore ?? 0) > 0.5 ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example
-                Heat = heat
+                PredictedPrice = (decimal)response.Value.Item2, // Simple example
+                Heat = response.Value.Item1
             };
             
             await StorePredictionAsync(prediction);
@@ -363,96 +311,6 @@ public class ModelPredictionService(
         {
             logger.Error(ex, "Error fetching prediction from Gaia for {Symbol}", symbol);
             return null;
-        }
-    }
-    
-    private async Task<Dictionary<string, Prediction>> FetchAndStorePredictionsFromApollo(List<string> symbols)
-    {
-        try
-        {
-            // Get heat predictions from Apollo service for all symbols
-            var heats = await apolloService.GetHeatPredictionsAsync(symbols);
-            var predictions = new Dictionary<string, Prediction>();
-            
-            if (heats == null || !heats.Any()) return predictions;
-            
-            var modelVersion = await apolloService.GetModelVersionAsync();
-            var tomorrow = DateTime.UtcNow.Date.AddDays(1);
-            
-            // Create predictions for all symbols with heat data
-            foreach (var (symbol, heat) in heats)
-            {
-                // Get current price for the symbol from market data service
-                var historicalMarketDataLatest = await databaseService.GetLatestHistoricalMarketDataAsync(symbol);
-                var currentPrice = historicalMarketDataLatest?.Close ?? 0;
-                
-                var prediction = new Prediction
-                {
-                    Symbol = symbol,
-                    ModelSource = APOLLO_SOURCE,
-                    Timestamp = DateTime.UtcNow,
-                    ModelVersion = modelVersion,
-                    PredictionTarget = tomorrow, // Apollo predicts for next day
-                    CurrentPrice = currentPrice,
-                    PredictedPrice = (decimal?)(heat?.HeatScore ?? 0) > 0.5m ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example
-                    Heat = heat
-                };
-                
-                await StorePredictionAsync(prediction);
-                predictions[symbol] = prediction;
-            }
-            
-            return predictions;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error fetching predictions from Apollo for multiple symbols");
-            return new Dictionary<string, Prediction>();
-        }
-    }
-    
-    private async Task<Dictionary<string, Prediction>> FetchAndStorePredictionsFromIgnis(List<string> symbols)
-    {
-        try
-        {
-            // Get heat predictions from Ignis service for all symbols
-            var heats = await ignisService.GetHeatPredictionsAsync(symbols);
-            var predictions = new Dictionary<string, Prediction>();
-            
-            if (heats == null || !heats.Any()) return predictions;
-            
-            var modelVersion = await ignisService.GetModelVersionAsync();
-            var now = DateTime.UtcNow;
-            
-            // Create predictions for all symbols with heat data
-            foreach (var (symbol, heat) in heats)
-            {
-                // Get current price for the symbol from market data service
-                var intradayMarketDataLatest = await databaseService.GetLatestIntradayMarketDataAsync(symbol);
-                var currentPrice = intradayMarketDataLatest?.Current ?? 0;
-                
-                var prediction = new Prediction
-                {
-                    Symbol = symbol,
-                    ModelSource = IGNIS_SOURCE,
-                    Timestamp = now,
-                    ModelVersion = modelVersion,
-                    PredictionTarget = now, // Ignis is real-time
-                    CurrentPrice = currentPrice,
-                    PredictedPrice = (decimal?)(heat?.HeatScore ?? 0) > 0.5m ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example
-                    Heat = heat
-                };
-                
-                await StorePredictionAsync(prediction);
-                predictions[symbol] = prediction;
-            }
-            
-            return predictions;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error fetching predictions from Ignis for multiple symbols");
-            return new Dictionary<string, Prediction>();
         }
     }
     

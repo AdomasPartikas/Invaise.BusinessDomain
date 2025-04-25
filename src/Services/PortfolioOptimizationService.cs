@@ -263,7 +263,12 @@ public class PortfolioOptimizationService(
             Explanation = result.Explanation,
             Confidence = result.Confidence,
             ModelVersion = await gaiaService.GetModelVersionAsync(),
-            IsApplied = false
+            IsApplied = false,
+            // Store portfolio metrics
+            SharpeRatio = result.Metrics.SharpeRatio,
+            MeanReturn = result.Metrics.MeanReturn,
+            Variance = result.Metrics.Variance,
+            ExpectedReturn = result.Metrics.ExpectedReturn
         };
 
         // Add recommendations
@@ -294,7 +299,15 @@ public class PortfolioOptimizationService(
             UserId = optimization.UserId,
             Explanation = optimization.Explanation,
             Confidence = optimization.Confidence,
-            Timestamp = optimization.Timestamp
+            Timestamp = optimization.Timestamp,
+            // Map portfolio metrics
+            Metrics = new PortfolioMetrics
+            {
+                SharpeRatio = optimization.SharpeRatio,
+                MeanReturn = optimization.MeanReturn,
+                Variance = optimization.Variance,
+                ExpectedReturn = optimization.ExpectedReturn
+            }
         };
 
         // Map recommendations

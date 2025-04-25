@@ -306,40 +306,40 @@ try
     app.UseHangfireServer();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    RecurringJob.AddOrUpdate<IMarketDataService>(
-        "refresh-historical-data",
-        service => service.FetchAndImportHistoricalMarketDataAsync(),
-        "0 0 * * *");
+    // RecurringJob.AddOrUpdate<IMarketDataService>(
+    //     "refresh-historical-data",
+    //     service => service.FetchAndImportHistoricalMarketDataAsync(),
+    //     "0 0 * * *");
 
     RecurringJob.AddOrUpdate<IMarketDataService>(
         "refresh-intraday-data",
         service => service.ImportIntradayMarketDataAsync(),
         "*/5 * * * *");
 
-    RecurringJob.AddOrUpdate<IModelHealthService>(
-        "check-model-health",
-        service => service.CheckAllModelsHealthAsync(),
-        "*/1 * * * *");
+    // RecurringJob.AddOrUpdate<IModelHealthService>(
+    //     "check-model-health",
+    //     service => service.CheckAllModelsHealthAsync(),
+    //     "*/1 * * * *");
 
-    RecurringJob.AddOrUpdate<IModelPerformanceService>(
-        "check-model-training-status",
-        service => service.CheckTrainingModelsStatusAsync(),
-        "*/3 * * * *");
+    // RecurringJob.AddOrUpdate<IModelPerformanceService>(
+    //     "check-model-training-status",
+    //     service => service.CheckTrainingModelsStatusAsync(),
+    //     "*/3 * * * *");
         
-    RecurringJob.AddOrUpdate<IModelPerformanceService>(
-        "check-model-retraining-needs",
-        service => service.CheckAndInitiateRetrainingForAllModelsAsync(),
-        "0 */12 * * *");
+    // RecurringJob.AddOrUpdate<IModelPerformanceService>(
+    //     "check-model-retraining-needs",
+    //     service => service.CheckAndInitiateRetrainingForAllModelsAsync(),
+    //     "0 */12 * * *");
 
     RecurringJob.AddOrUpdate<IPortfolioService>(
         "refresh-portfolios",
         service => service.RefreshAllPortfoliosAsync(),
         "*/5 * * * *");
         
-    RecurringJob.AddOrUpdate<IModelPredictionService>(
-        "update-predictions",
-        service => service.RefreshAllPredictionsAsync(),
-        "0 */1 * * *");
+    // RecurringJob.AddOrUpdate<IModelPredictionService>(
+    //     "update-predictions",
+    //     service => service.RefreshAllPredictionsAsync(),
+    //     "0 */1 * * *");
         
     // RecurringJob.AddOrUpdate<IPerformanceService>(
     //     "evaluate-model-performance",

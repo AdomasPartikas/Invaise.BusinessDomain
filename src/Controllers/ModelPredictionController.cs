@@ -129,26 +129,6 @@ public class ModelPredictionController(IModelPredictionService modelPredictionSe
     }
     
     /// <summary>
-    /// Refreshes predictions for multiple symbols from all model sources
-    /// </summary>
-    /// <param name="symbols">Comma-separated list of stock symbols</param>
-    /// <returns>Dictionary mapping symbols to model sources to predictions</returns>
-    [HttpPost("batch/refresh")]
-    public async Task<ActionResult<Dictionary<string, Dictionary<string, Prediction>>>> RefreshPredictionsBatch([FromQuery] string symbols)
-    {
-        try
-        {
-            var symbolList = symbols.Split(',').Select(s => s.Trim()).ToList();
-            var predictions = await modelPredictionService.RefreshPredictionsAsync(symbolList);
-            return Ok(predictions);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Error refreshing predictions: {ex.Message}");
-        }
-    }
-    
-    /// <summary>
     /// Manually stores a prediction
     /// </summary>
     /// <param name="prediction">The prediction to store</param>

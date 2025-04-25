@@ -18,14 +18,7 @@ public interface IIgnisService
     /// </summary>
     /// <param name="symbol">The stock symbol</param>
     /// <returns>Heat prediction details</returns>
-    Task<Heat?> GetHeatPredictionAsync(string symbol);
-    
-    /// <summary>
-    /// Gets heat predictions for multiple stocks
-    /// </summary>
-    /// <param name="symbols">List of stock symbols</param>
-    /// <returns>Dictionary mapping symbols to heat predictions</returns>
-    Task<Dictionary<string, Heat>> GetHeatPredictionsAsync(IEnumerable<string> symbols);
+    Task<(Heat, double)?> GetHeatPredictionAsync(string symbol);
     
     /// <summary>
     /// Requests model retraining

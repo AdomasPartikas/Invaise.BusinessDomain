@@ -65,6 +65,26 @@ public class PortfolioOptimization
     public string ModelVersion { get; set; } = string.Empty;
     
     /// <summary>
+    /// Gets or sets the Sharpe ratio for the portfolio
+    /// </summary>
+    public double SharpeRatio { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the mean return for the portfolio
+    /// </summary>
+    public double MeanReturn { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the variance for the portfolio
+    /// </summary>
+    public double Variance { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the expected return based on CAPM
+    /// </summary>
+    public double ExpectedReturn { get; set; }
+    
+    /// <summary>
     /// Gets or sets the optimization recommendations
     /// </summary>
     public virtual ICollection<PortfolioOptimizationRecommendation> Recommendations { get; set; } = new List<PortfolioOptimizationRecommendation>();

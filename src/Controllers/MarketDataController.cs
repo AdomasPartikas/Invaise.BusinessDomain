@@ -13,7 +13,7 @@ namespace Invaise.BusinessDomain.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class MarketDataController(IDatabaseService dbService) : ControllerBase
+public class MarketDataController(IDatabaseService dbService, IMarketDataService marketDataService) : ControllerBase
 {
 
     /// <summary>
@@ -127,5 +127,14 @@ public class MarketDataController(IDatabaseService dbService) : ControllerBase
             return NotFound("No symbols found.");
 
         return Ok(symbols);
+    }
+
+    [HttpGet("IsMarketOpen")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<IActionResult> IsMarketOpen()
+    {
+        var isOpen = await marketDataService.IsMarketOpenAsync();
+
+        return Ok(isOpen);
     }
 }

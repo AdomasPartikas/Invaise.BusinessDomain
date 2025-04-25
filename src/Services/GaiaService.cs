@@ -197,8 +197,21 @@ public class GaiaService(
             UserId = response.UserId,
             Explanation = response.Explanation,
             Confidence = response.Confidence,
-            Timestamp = DateTime.Parse(response.Timestamp)
+            Timestamp = DateTime.Parse(response.Timestamp),
+            Successful = response.Successful
         };
+        
+        // Set portfolio metrics if available
+        if (response.PortfolioMetrics != null)
+        {
+            result.Metrics = new PortfolioMetrics
+            {
+                SharpeRatio = response.PortfolioMetrics.SharpeRatio,
+                MeanReturn = response.PortfolioMetrics.MeanReturn,
+                Variance = response.PortfolioMetrics.Variance,
+                ExpectedReturn = response.PortfolioMetrics.ExpectedReturn
+            };
+        }
         
         foreach (var recommendation in response.PortfolioRecommendations)
         {
@@ -228,6 +241,8 @@ public class GaiaService(
         public string Explanation { get; set; } = string.Empty;
         public double Confidence { get; set; }
         public string Timestamp { get; set; } = string.Empty;
+        public bool Successful { get; set; } = true;
+        public GaiaPortfolioMetrics? PortfolioMetrics { get; set; }
     }
 
     private class GaiaRecommendation
@@ -239,6 +254,14 @@ public class GaiaService(
         public double CurrentWeight { get; set; }
         public double TargetWeight { get; set; }
         public string Explanation { get; set; } = string.Empty;
+    }
+    
+    private class GaiaPortfolioMetrics
+    {
+        public double SharpeRatio { get; set; }
+        public double MeanReturn { get; set; }
+        public double Variance { get; set; }
+        public double ExpectedReturn { get; set; }
     }
     
     #endregion

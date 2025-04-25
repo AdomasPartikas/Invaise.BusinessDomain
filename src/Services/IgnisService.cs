@@ -38,7 +38,7 @@ public class IgnisService(
     }
 
     /// <inheritdoc/>
-    public async Task<Heat?> GetHeatPredictionAsync(string symbol)
+    public async Task<(Heat, double)?> GetHeatPredictionAsync(string symbol)
     {
         try
         {
@@ -51,22 +51,17 @@ public class IgnisService(
 
             // Extract heat score and confidence from response
             double heatScore = 0;
-            double confidence = 0.7; // Default confidence
 
             heatScore = response.Heat_score;
 
-            // Extract confidence if available
-            if (response.AdditionalProperties.TryGetValue("confidence", out var confidenceObj) && 
-                confidenceObj is double confidenceValue)
-            {
-                confidence = confidenceValue;
-            }
+            double confidence = response.Confidence;
 
             // Get explanation or generate a default one
-            string explanation = response.AdditionalProperties.TryGetValue("explanation", out var explanationObj) && 
-                               explanationObj is string explanationStr 
-                               ? explanationStr 
-                               : $"Ignis prediction for {symbol}: Heat score {heatScore:F2}";
+            string explanation = response.Explanation ?? "No explanation available";
+
+            string direction = response.Direction ?? "neutral";
+
+            var prediction = response.Pred_close;
 
             var heat = new Heat
             {
@@ -74,41 +69,17 @@ public class IgnisService(
                 HeatScore = heatScore,
                 Score = (int)Math.Round(heatScore * 100),
                 Confidence = (int)Math.Round(confidence * 100),
-                Explanation = explanation
+                Explanation = explanation,
+                Direction = direction,
             };
 
-            return heat;
+            return (heat, prediction);
         }
         catch (Exception ex)
         {
             logger.Error(ex, "Error getting heat prediction from Ignis for symbol {Symbol}", symbol);
             return null;
         }
-    }
-
-    /// <inheritdoc/>
-    public async Task<Dictionary<string, Heat>> GetHeatPredictionsAsync(IEnumerable<string> symbols)
-    {
-        var result = new Dictionary<string, Heat>();
-        
-        foreach (var symbol in symbols)
-        {
-            try
-            {
-                var prediction = await GetHeatPredictionAsync(symbol);
-                if (prediction != null)
-                {
-                    result.Add(symbol, prediction);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log the error but continue processing other symbols
-                logger.Error(ex, "Error getting heat prediction from Ignis for symbol {Symbol}", symbol);
-            }
-        }
-        
-        return result;
     }
 
     /// <inheritdoc/>

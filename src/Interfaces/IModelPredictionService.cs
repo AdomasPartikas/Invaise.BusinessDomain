@@ -56,11 +56,4 @@ public interface IModelPredictionService
     /// <param name="symbol">The stock symbol</param>
     /// <returns>Dictionary mapping model sources to refreshed predictions</returns>
     Task<Dictionary<string, Prediction>> RefreshPredictionsAsync(string symbol);
-    
-    /// <summary>
-    /// Refreshes predictions for multiple symbols from all model sources
-    /// </summary>
-    /// <param name="symbols">List of stock symbols</param>
-    /// <returns>Dictionary mapping symbols to model sources to predictions</returns>
-    Task<Dictionary<string, Dictionary<string, Prediction>>> RefreshPredictionsAsync(IEnumerable<string> symbols);
 } 

@@ -41,6 +41,37 @@ public class PortfolioOptimizationResult
     /// Error message if operation failed
     /// </summary>
     public string? ErrorMessage { get; set; }
+    
+    /// <summary>
+    /// Portfolio metrics from Gaia analysis
+    /// </summary>
+    public PortfolioMetrics Metrics { get; set; } = new();
+}
+
+/// <summary>
+/// Represents portfolio metrics from Gaia analysis
+/// </summary>
+public class PortfolioMetrics
+{
+    /// <summary>
+    /// Sharpe ratio for the portfolio
+    /// </summary>
+    public double SharpeRatio { get; set; }
+    
+    /// <summary>
+    /// Mean return for the portfolio
+    /// </summary>
+    public double MeanReturn { get; set; }
+    
+    /// <summary>
+    /// Variance for the portfolio
+    /// </summary>
+    public double Variance { get; set; }
+    
+    /// <summary>
+    /// Expected return based on CAPM
+    /// </summary>
+    public double ExpectedReturn { get; set; }
 }
 
 /// <summary>

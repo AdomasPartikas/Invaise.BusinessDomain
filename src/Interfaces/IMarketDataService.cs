@@ -29,4 +29,5 @@ public interface IMarketDataService
     /// Imports daily market data into the database.
     /// </summary>
     Task ImportIntradayMarketDataAsync();
+    Task<bool> IsMarketOpenAsync();
 }

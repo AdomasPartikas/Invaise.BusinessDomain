@@ -46,6 +46,11 @@ public class Heat
     public string? Explanation { get; set; }
 
     /// <summary>
+    /// Gets or sets the direction of the heat prediction (e.g., "up", "down", "neutral")
+    /// </summary>
+    public string Direction { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the contribution from Apollo model
     /// </summary>
     public double? ApolloContribution { get; set; }
