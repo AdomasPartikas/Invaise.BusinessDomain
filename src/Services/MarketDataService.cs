@@ -21,7 +21,7 @@ public enum CallType
 /// <summary>
 /// Service for handling market data operations.
 /// </summary>
-public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, InvaiseDbContext context, IKaggleService kaggleService, IDataService dataService, IDatabaseService dbService) : IMarketDataService
+public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, InvaiseDbContext context, IKaggleService kaggleService, IDataService dataService, IDatabaseService dbService, Serilog.ILogger logger) : IMarketDataService
 {
     public async Task FetchAndImportHistoricalMarketDataAsync()
     {
@@ -91,10 +91,22 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
     public async Task<bool> IsMarketOpenAsync()
     {
-        var exchange = "US";
-        var response = await finnhubClient.MarketStatusAsync(exchange);
-
-        return response.IsOpen ?? false;
+        try
+        {
+            var exchange = "US";
+            var response = await finnhubClient.MarketStatusAsync(exchange);
+            return response.IsOpen ?? false;
+        }
+        catch (FinnhubAPIClientException ex)
+        {
+            logger.Error(ex, "Error checking market status. Status: {Status}", ex.StatusCode);
+            return false; // Default to market closed if we can't determine status
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Unexpected error checking market status");
+            return false; // Default to market closed if we can't determine status
+        }
     }
 
     private async Task<object?> FinnhubCallWithRetries(string symbol, CallType callType, int retries = 5, int delay = 1)
@@ -146,6 +158,7 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
 
     public async Task ImportIntradayMarketDataAsync()
     {
+
         if (!await IsMarketOpenAsync())
         {
             Console.WriteLine("Market is closed. Skipping import.");

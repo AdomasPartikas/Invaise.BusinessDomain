@@ -1,18 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Entities;
 public class PortfolioStock
 {
     [Key]
-    public int ID { get; set; }
+    public string ID { get; set; } = Guid.NewGuid().ToString();
 
     [Required]
-    public required int PortfolioId { get; set; }
+    [ForeignKey("Portfolio")]
+    public required string PortfolioId { get; set; }
 
     [Required]
-    public required int CompanyId { get; set; }
-
+    public required string Symbol { get; set; }
+    
     [Required]
     public required decimal Quantity { get; set; }
 
@@ -30,5 +32,4 @@ public class PortfolioStock
 
 
     public required virtual Portfolio Portfolio { get; set; } = null!;
-    public required virtual Company Company { get; set; }
 }

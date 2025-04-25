@@ -10,8 +10,8 @@
       "openApiToCSharpClient": {
         "generateClientClasses": true,
         "generateClientInterfaces": true,
-        "useBaseUrl": false,
-        "generateBaseUrlProperty": false,
+        "useBaseUrl": true,
+        "generateBaseUrlProperty": true,
         "injectHttpClient": true,
         "disposeHttpClient": true,
         "generateExceptionClasses": true,
@@ -22,7 +22,8 @@
         "serviceHost": "$(ServiceHost)",
         "output": "APIClients/$(Name)/$(Name).cs",
         "dateType": "System.DateTime",
-       "dateTimeType": "System.DateTime"
+        "dateTimeType": "System.DateTime",
+        "jsonLibrary": "NewtonsoftJson"
       }
     }
   }

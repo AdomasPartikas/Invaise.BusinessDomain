@@ -5,23 +5,30 @@ using Invaise.BusinessDomain.API.Models;
 namespace Invaise.BusinessDomain.API.Context;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="InvaiseDbContext"/> class with the specified options.
+/// Database context for the Invaise application.
 /// </summary>
-/// <param name="options">The options to configure the database context.</param>
-public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbContext(options)
+public class InvaiseDbContext : DbContext
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InvaiseDbContext"/> class with the specified options.
+    /// </summary>
+    /// <param name="options">The options to configure the database context.</param>
+    public InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : base(options) { }
+
     /// <summary>
     /// Gets or sets the collection of users in the database.
     /// </summary>
     public DbSet<User> Users { get; set; } = null!;
-    /// <summary>
-    /// Gets or sets the collection of user roles in the database.
-    /// </summary>
-    public DbSet<UserRole> UserRoles { get; set; } = null!;
+    
     /// <summary>
     /// Gets or sets the collection of user personal information in the database.
     /// </summary>
-    public DbSet<UserPersonalInfo> UserPersonalInfos { get; set; } = null!;
+    public DbSet<UserPersonalInfo> UserPersonalInfo { get; set; } = null!;
+    
+    /// <summary>
+    /// Gets or sets the collection of user preferences in the database.
+    /// </summary>
+    public DbSet<UserPreferences> UserPreferences { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the collection of market data in the database.
@@ -42,7 +49,16 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
     public DbSet<AIModel> AIModels { get; set; } = null!;
     public DbSet<Prediction> Predictions { get; set; } = null!;
     public DbSet<Heat> Heats { get; set; } = null!;
-
+    
+    /// <summary>
+    /// Gets or sets the collection of portfolio optimizations in the database.
+    /// </summary>
+    public DbSet<PortfolioOptimization> PortfolioOptimizations { get; set; } = null!;
+    
+    /// <summary>
+    /// Gets or sets the collection of portfolio optimization recommendations in the database.
+    /// </summary>
+    public DbSet<PortfolioOptimizationRecommendation> PortfolioOptimizationRecommendations { get; set; } = null!;
 
     /// <summary>
     /// Configures the model for the database context.
@@ -50,21 +66,33 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
     /// <param name="modelBuilder">The builder used to construct the model for the database context.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleName });
-
+        // Configure User related relationships
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+        });
+        
         modelBuilder.Entity<UserPersonalInfo>()
-            .HasOne<User>()
-            .WithOne()
+            .HasOne(pi => pi.User)
+            .WithOne(u => u.PersonalInfo)
             .HasForeignKey<UserPersonalInfo>(pi => pi.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+            
+        modelBuilder.Entity<UserPreferences>()
+            .HasOne(p => p.User)
+            .WithOne(u => u.Preferences)
+            .HasForeignKey<UserPreferences>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<HistoricalMarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Date })
-            .IsUnique());
+        // Configure market data indexes
+        modelBuilder.Entity<HistoricalMarketData>(entity => 
+            entity.HasIndex(e => new { e.Symbol, e.Date }).IsUnique());
 
-        modelBuilder.Entity<IntradayMarketData>(entity => entity.HasIndex(e => new { e.Symbol, e.Timestamp })
-            .IsUnique());
+        modelBuilder.Entity<IntradayMarketData>(entity => 
+            entity.HasIndex(e => new { e.Symbol, e.Timestamp }).IsUnique());
 
+        // Configure Portfolio related relationships
         modelBuilder.Entity<Portfolio>()
             .HasOne(p => p.User)
             .WithMany(u => u.Portfolios)
@@ -74,22 +102,21 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
         modelBuilder.Entity<PortfolioStock>()
             .HasOne(ps => ps.Portfolio)
             .WithMany(p => p.PortfolioStocks)
-            .HasForeignKey("PortfolioId");
+            .HasForeignKey(ps => ps.PortfolioId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<PortfolioStock>()
-            .HasOne(ps => ps.Company)
-            .WithMany()
-            .HasForeignKey("CompanyId");
-
+        // Configure Transaction relationships
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Portfolio)
-            .WithMany()
-            .HasForeignKey("PortfolioId");
+            .WithMany(p => p.Transactions)
+            .HasForeignKey(t => t.PortfolioId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.Company)
-            .WithMany()
-            .HasForeignKey("CompanyId");
+            .HasOne(t => t.User)
+            .WithMany(u => u.Transactions)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<PortfolioHealth>()
             .HasOne(ph => ph.Portfolio)
@@ -99,5 +126,18 @@ public class InvaiseDbContext(DbContextOptions<InvaiseDbContext> options) : DbCo
         modelBuilder.Entity<Log>()
             .ToTable("LogEvents")
             .HasKey(l => l.Id);
+
+        // Configure PortfolioOptimization relationships
+        modelBuilder.Entity<PortfolioOptimization>()
+            .HasOne(po => po.Portfolio)
+            .WithMany()
+            .HasForeignKey(po => po.PortfolioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PortfolioOptimizationRecommendation>()
+            .HasOne(r => r.Optimization)
+            .WithMany(o => o.Recommendations)
+            .HasForeignKey(r => r.OptimizationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

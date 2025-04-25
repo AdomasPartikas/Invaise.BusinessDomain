@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Invaise.BusinessDomain.API.Entities;
 
@@ -11,7 +12,13 @@ public class UserPersonalInfo
     /// Gets or sets the unique identifier for the user.
     /// </summary>
     [Key]
-    public long UserId { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// Gets or sets the foreign key to the user.
+    /// </summary>
+    [ForeignKey("User")]
+    public string UserId { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the legal first name of the user.
@@ -34,6 +41,11 @@ public class UserPersonalInfo
     public DateTime DateOfBirth { get; set; }
 
     /// <summary>
+    /// Gets or sets the phone number of the user.
+    /// </summary>
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the government-issued ID of the user.
     /// </summary>
     [MaxLength(20)]
@@ -44,13 +56,7 @@ public class UserPersonalInfo
     /// </summary>
     [Required]
     [MaxLength(255)]
-    public string AddressLine1 { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the secondary address line of the user.
-    /// </summary>
-    [MaxLength(255)]
-    public string? AddressLine2 { get; set; }
+    public string Address { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the city of the user's address.
@@ -81,4 +87,6 @@ public class UserPersonalInfo
     /// Gets or sets the date and time when the record was last updated.
     /// </summary>
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual User User { get; set; } = null!;
 }

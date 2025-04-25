@@ -7,10 +7,10 @@ namespace Invaise.BusinessDomain.API.Entities;
 public class Portfolio
 {
     [Key]
-    public int Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    [Required]
-    public long UserId { get; set; }
+    [ForeignKey("User")]
+    public string UserId { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(100)]
@@ -23,9 +23,8 @@ public class Portfolio
 
     public DateTime? LastUpdated { get; set; }
 
-
-    [ForeignKey(nameof(UserId))]
+    // Navigation properties
     public virtual User User { get; set; } = null!;
     public virtual ICollection<PortfolioStock> PortfolioStocks { get; set; } = new List<PortfolioStock>();
-
+    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

@@ -22,6 +22,48 @@ namespace Invaise.BusinessDomain.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.AIModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AccessUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime?>("LastTrainedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("LastUpdated")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ModelStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AIModels");
+                });
+
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Company", b =>
                 {
                     b.Property<int>("StockId")
@@ -60,6 +102,48 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.HasKey("StockId");
 
                     b.ToTable("Companies");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Heat", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double?>("ApolloContribution")
+                        .HasColumnType("double");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Explanation")
+                        .HasColumnType("longtext");
+
+                    b.Property<double>("HeatScore")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("IgnisContribution")
+                        .HasColumnType("double");
+
+                    b.Property<long>("PredictionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PredictionId")
+                        .IsUnique();
+
+                    b.ToTable("Heats");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.HistoricalMarketData", b =>
@@ -187,11 +271,8 @@ namespace Invaise.BusinessDomain.API.Migrations
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Portfolio", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -207,8 +288,9 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<int>("StrategyDescription")
                         .HasColumnType("int");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -231,8 +313,9 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<decimal?>("MaxDrawdown")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<int>("PortfolioId")
-                        .HasColumnType("int");
+                    b.Property<string>("PortfolioId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("RiskAdjustedReturn")
                         .HasColumnType("decimal(65,30)");
@@ -259,16 +342,99 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.ToTable("PortfolioHealth");
                 });
 
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioOptimization", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("AppliedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsApplied")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("PortfolioId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<double?>("RiskTolerance")
+                        .HasColumnType("double");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PortfolioId");
+
+                    b.ToTable("PortfolioOptimizations");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioOptimizationRecommendation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<double>("CurrentWeight")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("OptimizationId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<decimal>("TargetQuantity")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<double>("TargetWeight")
+                        .HasColumnType("double");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OptimizationId");
+
+                    b.ToTable("PortfolioOptimizationRecommendations");
+                });
+
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioStock", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
+                    b.Property<string>("ID")
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("CurrentTotalValue")
                         .HasColumnType("decimal(65,30)");
@@ -279,43 +445,88 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<decimal>("PercentageChange")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<int>("PortfolioId")
-                        .HasColumnType("int");
+                    b.Property<string>("PortfolioId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<decimal>("TotalBaseValue")
                         .HasColumnType("decimal(65,30)");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("PortfolioId");
 
                     b.ToTable("PortfolioStocks");
                 });
 
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Prediction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("CurrentPrice")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<long?>("HeatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ModelSource")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("PredictedPrice")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<DateTime>("PredictionTarget")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Predictions");
+                });
+
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Transaction", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PortfolioId")
-                        .HasColumnType("int");
+                    b.Property<string>("PortfolioId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("PricePerShare")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime(6)");
@@ -329,22 +540,24 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
-                    b.HasKey("ID");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
-                    b.HasIndex("CompanyId");
+                    b.HasKey("Id");
 
                     b.HasIndex("PortfolioId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.User", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -367,15 +580,12 @@ namespace Invaise.BusinessDomain.API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("UserRoleId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -384,15 +594,11 @@ namespace Invaise.BusinessDomain.API.Migrations
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserPersonalInfo", b =>
                 {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("AddressLine1")
-                        .IsRequired()
-                        .HasMaxLength(255)
+                    b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("AddressLine2")
+                    b.Property<string>("Address")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
@@ -426,6 +632,10 @@ namespace Invaise.BusinessDomain.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("PostalCode")
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
@@ -433,29 +643,57 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("UserId");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
-                    b.ToTable("UserPersonalInfos");
-                });
-
-            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserRole", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("RoleName")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("UserId", "RoleName");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserPersonalInfo");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserPreferences", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("InvestmentHorizon")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("RiskTolerance")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserPreferences");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Heat", b =>
+                {
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.Prediction", "Prediction")
+                        .WithOne("Heat")
+                        .HasForeignKey("Invaise.BusinessDomain.API.Entities.Heat", "PredictionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Prediction");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Portfolio", b =>
@@ -480,73 +718,106 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Navigation("Portfolio");
                 });
 
-            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioStock", b =>
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioOptimization", b =>
                 {
-                    b.HasOne("Invaise.BusinessDomain.API.Entities.Company", "Company")
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.Portfolio", "Portfolio")
                         .WithMany()
-                        .HasForeignKey("CompanyId")
+                        .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Portfolio");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioOptimizationRecommendation", b =>
+                {
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.PortfolioOptimization", "Optimization")
+                        .WithMany("Recommendations")
+                        .HasForeignKey("OptimizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Optimization");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioStock", b =>
+                {
                     b.HasOne("Invaise.BusinessDomain.API.Entities.Portfolio", "Portfolio")
                         .WithMany("PortfolioStocks")
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Company");
-
                     b.Navigation("Portfolio");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Transaction", b =>
                 {
-                    b.HasOne("Invaise.BusinessDomain.API.Entities.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Invaise.BusinessDomain.API.Entities.Portfolio", "Portfolio")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Company");
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.User", "User")
+                        .WithMany("Transactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Portfolio");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserPersonalInfo", b =>
                 {
-                    b.HasOne("Invaise.BusinessDomain.API.Entities.User", null)
-                        .WithOne()
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.User", "User")
+                        .WithOne("PersonalInfo")
                         .HasForeignKey("Invaise.BusinessDomain.API.Entities.UserPersonalInfo", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserRole", b =>
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.UserPreferences", b =>
                 {
-                    b.HasOne("Invaise.BusinessDomain.API.Entities.User", null)
-                        .WithOne("UserRole")
-                        .HasForeignKey("Invaise.BusinessDomain.API.Entities.UserRole", "UserId")
+                    b.HasOne("Invaise.BusinessDomain.API.Entities.User", "User")
+                        .WithOne("Preferences")
+                        .HasForeignKey("Invaise.BusinessDomain.API.Entities.UserPreferences", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Portfolio", b =>
                 {
                     b.Navigation("PortfolioStocks");
+
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.PortfolioOptimization", b =>
+                {
+                    b.Navigation("Recommendations");
+                });
+
+            modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.Prediction", b =>
+                {
+                    b.Navigation("Heat");
                 });
 
             modelBuilder.Entity("Invaise.BusinessDomain.API.Entities.User", b =>
                 {
+                    b.Navigation("PersonalInfo");
+
                     b.Navigation("Portfolios");
 
-                    b.Navigation("UserRole")
-                        .IsRequired();
+                    b.Navigation("Preferences");
+
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

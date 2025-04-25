@@ -11,13 +11,13 @@ public class User
     /// Gets or sets the unique identifier for the user.
     /// </summary>
     [Key]
-    public long Id { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// Gets or sets the unique identifier for the company associated with the user.
+    /// Gets or sets the role of the user (e.g., Admin, User).
     /// </summary>
     [Required]
-    public int UserRoleId { get; set; }
+    public string Role { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the email address of the user.
@@ -36,12 +36,6 @@ public class User
     /// </summary>
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the status of the user. Default is "ACTIVE".
-    /// </summary>
-    [Required]
-    public string Status { get; set; } = "ACTIVE";
 
     /// <summary>
     /// Gets or sets the date and time when the user was created.
@@ -66,6 +60,8 @@ public class User
     public DateTime? LastLoginAt { get; set; }
 
 
-    public virtual UserRole UserRole { get; set; } = null!;
-    public virtual ICollection<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
+    public UserPreferences? Preferences { get; set; }
+    public UserPersonalInfo? PersonalInfo { get; set; }
+    public ICollection<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
+    public List<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

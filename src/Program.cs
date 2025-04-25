@@ -1,6 +1,7 @@
 using Invaise.BusinessDomain.API.FinnhubAPIClient;
 using Invaise.BusinessDomain.API.GaiaAPIClient;
 using Invaise.BusinessDomain.API.ApolloAPIClient;
+using Invaise.BusinessDomain.API.IgnisAPIClient;
 using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
@@ -11,6 +12,16 @@ using Serilog;
 using Serilog.Debugging;
 using Serilog.Sinks.MariaDB.Extensions;
 using Serilog.Sinks.MariaDB;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Invaise.BusinessDomain.API.Middleware;
+using AutoMapper;
+using System.Configuration;
+using Invaise.BusinessDomain.API.Config;
 
 
 // Enable Serilog self-logging to see internal errors
@@ -77,7 +88,7 @@ try
         options.AddPolicy("AllowSpecificOrigin",
             policy =>
             {
-                policy.WithOrigins("http://localhost:5173")
+                policy.WithOrigins(builder.Configuration["UIBaseUrl"] ?? throw new InvalidOperationException("UIBaseUrl not configured"))
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -91,7 +102,18 @@ try
         )
     );
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            options.JsonSerializerOptions.MaxDepth = 64;
+        })
+        .AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.Converters.Add(new StringEnumConverter());
+            options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        });
 
     builder.Services.AddEndpointsApiExplorer();
 
@@ -103,9 +125,64 @@ try
         var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath);
+        
+        // Add JWT Authentication to Swagger
+        c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme."
+        });
+
+        c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
     });
 
     builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+    // Add authentication services
+    var jwtKey = builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
+    var jwtIssuer = builder.Configuration["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer not configured");
+    var jwtAudience = builder.Configuration["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience not configured");
+    
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+    // Add our custom services
+    builder.Services.AddScoped<IAuthService, AuthService>();
 
     builder.Services.AddHttpClient<IFinnhubClient, FinnhubClient>(client =>
     {
@@ -113,15 +190,85 @@ try
         client.BaseAddress = new Uri(builder.Configuration["FinnhubBaseUrl"] ?? throw new InvalidOperationException("Finnhub base URL not configured"));
     });
 
+    // Gaia Client Registration
     builder.Services.AddHttpClient<IHealthGaiaClient, HealthGaiaClient>(client =>
     {
         client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IPredictGaiaClient, PredictGaiaClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IOptimizeGaiaClient, OptimizeGaiaClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IWeightsGaiaClient, WeightsGaiaClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
+    });
+
+    builder.Services.AddHttpClient<IHealthApolloClient, HealthApolloClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Apollo:BaseUrl"] ?? throw new InvalidOperationException("Apollo base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IPredictApolloClient, PredictApolloClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Apollo:BaseUrl"] ?? throw new InvalidOperationException("Apollo base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IInfoApolloClient, InfoApolloClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Apollo:BaseUrl"] ?? throw new InvalidOperationException("Apollo base URL not configured"));
+    });
+    builder.Services.AddHttpClient<ITrainApolloClient, TrainApolloClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Apollo:BaseUrl"] ?? throw new InvalidOperationException("Apollo base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IStatusApolloClient, StatusApolloClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Apollo:BaseUrl"] ?? throw new InvalidOperationException("Apollo base URL not configured"));
+    });
+
+    builder.Services.AddHttpClient<IHealthIgnisClient, HealthIgnisClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Ignis:BaseUrl"] ?? throw new InvalidOperationException("Ignis base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IPredictIgnisClient, PredictIgnisClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Ignis:BaseUrl"] ?? throw new InvalidOperationException("Ignis base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IInfoIgnisClient, InfoIgnisClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Ignis:BaseUrl"] ?? throw new InvalidOperationException("Ignis base URL not configured"));
+    });
+    builder.Services.AddHttpClient<ITrainIgnisClient, TrainIgnisClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Ignis:BaseUrl"] ?? throw new InvalidOperationException("Ignis base URL not configured"));
+    });
+    builder.Services.AddHttpClient<IStatusIgnisClient, StatusIgnisClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Ignis:BaseUrl"] ?? throw new InvalidOperationException("Ignis base URL not configured"));
     });
 
     builder.Services.AddScoped<IKaggleService, KaggleService>();
     builder.Services.AddScoped<IDataService, DataService>();
     builder.Services.AddScoped<IMarketDataService, MarketDataService>();
     builder.Services.AddScoped<IDatabaseService, DatabaseService>();
+    builder.Services.AddScoped<IPortfolioService, PortfolioService>();
+
+    // Register AI model services
+    builder.Services.Configure<AIModelSettings>(builder.Configuration.GetSection("AIModels"));
+    
+    builder.Services.AddScoped<IGaiaService, GaiaService>();
+    builder.Services.AddScoped<IApolloService, ApolloService>();
+    builder.Services.AddScoped<IIgnisService, IgnisService>();
+    builder.Services.AddScoped<IModelPredictionService, ModelPredictionService>();
+    builder.Services.AddScoped<IPortfolioOptimizationService, PortfolioOptimizationService>();
+
+    // Register utility services - these will be implemented next
+    builder.Services.AddScoped<IAIModelService, AIModelService>();
+    builder.Services.AddScoped<IModelHealthService, ModelHealthService>();
+    builder.Services.AddScoped<IModelPerformanceService, ModelPerformanceService>();
 
     builder.Services.AddHangfire(config =>
     {
@@ -129,6 +276,15 @@ try
     });
 
     builder.Services.AddHangfireServer();
+
+    // Configure HTTP clients for AI model services
+    builder.Services.AddHttpClient("GaiaClient", client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["AIModels:Gaia:BaseUrl"] ?? throw new InvalidOperationException("Gaia base URL not configured"));
+    });
+    
+    // Add a simple HttpClient for direct Gaia calls
+    builder.Services.AddHttpClient();
 
     var app = builder.Build();
 
@@ -160,6 +316,36 @@ try
         service => service.ImportIntradayMarketDataAsync(),
         "*/5 * * * *");
 
+    RecurringJob.AddOrUpdate<IModelHealthService>(
+        "check-model-health",
+        service => service.CheckAllModelsHealthAsync(),
+        "*/1 * * * *");
+
+    RecurringJob.AddOrUpdate<IModelPerformanceService>(
+        "check-model-training-status",
+        service => service.CheckTrainingModelsStatusAsync(),
+        "*/3 * * * *");
+        
+    RecurringJob.AddOrUpdate<IModelPerformanceService>(
+        "check-model-retraining-needs",
+        service => service.CheckAndInitiateRetrainingForAllModelsAsync(),
+        "0 */12 * * *");
+
+    RecurringJob.AddOrUpdate<IPortfolioService>(
+        "refresh-portfolios",
+        service => service.RefreshAllPortfoliosAsync(),
+        "*/5 * * * *");
+        
+    RecurringJob.AddOrUpdate<IModelPredictionService>(
+        "update-predictions",
+        service => service.RefreshAllPredictionsAsync(),
+        "0 */1 * * *");
+        
+    // RecurringJob.AddOrUpdate<IPerformanceService>(
+    //     "evaluate-model-performance",
+    //     service => service.EvaluateModelPerformanceAsync(0, DateTime.UtcNow.AddDays(-7), DateTime.UtcNow),
+    //     "0 4 * * *");
+
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
@@ -170,6 +356,12 @@ try
     app.UseCors("AllowSpecificOrigin");
 
     app.UseRouting();
+
+    // Add JWT middleware
+    app.UseMiddleware<JwtMiddleware>();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapControllers();
 

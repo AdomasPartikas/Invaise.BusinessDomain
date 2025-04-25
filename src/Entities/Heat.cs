@@ -1,36 +1,68 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Invaise.BusinessDomain.API.Enums;
 
-namespace Invaise.BusinessDomain.API.Models;
+namespace Invaise.BusinessDomain.API.Entities;
 
+/// <summary>
+/// Represents a heat prediction for a stock
+/// </summary>
 public class Heat
 {
+    /// <summary>
+    /// Gets or sets the unique identifier for the heat prediction
+    /// </summary>
     [Key]
-    public int Id { get; set; }
+    public long Id { get; set; }
     
-    [ForeignKey(nameof(Prediction))]
-    public int PredictionId { get; set; }
-    
+    /// <summary>
+    /// Gets or sets the stock symbol this heat prediction is for
+    /// </summary>
     [Required]
-    [Range(0, 1)]
+    [MaxLength(10)]
+    public string Symbol { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Gets or sets the heat score (0-100)
+    /// </summary>
+    [Required]
+    [Range(0, 100)]
+    public int Score { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the confidence level (0-100)
+    /// </summary>
+    [Required]
+    [Range(0, 100)]
+    public int Confidence { get; set; }
+
+    /// <summary>
+    /// Gets or sets the heat score from the model
+    /// </summary>
     public double HeatScore { get; set; }
-    
-    [Required]
-    [Range(0, 1)]
-    public double Confidence { get; set; }
-    
-    [Required]
-    public string Explanation { get; set; } = string.Empty;
-    
-    // Effective signal strength
-    [Range(0, 1)]
-    public double EffectiveHeat => HeatScore * Confidence;
-    
-    // For ensemble models like Gaia
+
+    /// <summary>
+    /// Gets or sets the explanation for the heat prediction
+    /// </summary>
+    public string? Explanation { get; set; }
+
+    /// <summary>
+    /// Gets or sets the contribution from Apollo model
+    /// </summary>
     public double? ApolloContribution { get; set; }
+
+    /// <summary>
+    /// Gets or sets the contribution from Ignis model
+    /// </summary>
     public double? IgnisContribution { get; set; }
     
-    // Navigation property
-    public virtual Prediction Prediction { get; set; } = null!;
-}
+    /// <summary>
+    /// Gets or sets the prediction that this heat belongs to
+    /// </summary>
+    [ForeignKey("PredictionId")]
+    public Prediction? Prediction { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the ID of the associated prediction
+    /// </summary>
+    public long PredictionId { get; set; }
+} 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Invaise.BusinessDomain.API.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
 using Invaise.BusinessDomain.API.Interfaces;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Invaise.BusinessDomain.API.Controllers;
 
@@ -49,6 +50,65 @@ public class MarketDataController(IDatabaseService dbService) : ControllerBase
             return BadRequest("Symbol is required.");
 
         var results = await dbService.GetIntradayMarketDataAsync(symbol, start, end);
+
+        return Ok(results);
+    }
+
+
+    [HttpGet("GetLatestIntradayMarketData")]
+    [ProducesResponseType(typeof(IntradayMarketData), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLatestIntradayMarketData([FromQuery] string symbol)
+    {
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
+
+        var results = await dbService.GetLatestIntradayMarketDataAsync(symbol);
+
+        return Ok(results);
+    }
+
+    [HttpGet("GetLatestIntradayMarketDataWithCount")]
+    [ProducesResponseType(typeof(IEnumerable<IntradayMarketData>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLatestIntradayMarketDataWithCount([FromQuery] string symbol, [FromQuery] int count)
+    {
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
+
+        if (count <= 0)
+            return BadRequest("Count must be greater than zero.");
+
+        var results = await dbService.GetLatestIntradayMarketDataAsync(symbol, count);
+
+        return Ok(results);
+    }
+
+    [HttpGet("GetLatestHistoricalMarketData")]
+    [ProducesResponseType(typeof(HistoricalMarketData), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLatestHistoricalMarketData([FromQuery] string symbol)
+    {
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
+
+        var results = await dbService.GetLatestHistoricalMarketDataAsync(symbol);
+
+        return Ok(results);
+    }
+
+    [HttpGet("GetLatestHistoricalMarketDataWithCount")]
+    [ProducesResponseType(typeof(HistoricalMarketData), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLatestHistoricalMarketDataWithCount([FromQuery] string symbol, [FromQuery] int count)
+    {
+        if (string.IsNullOrEmpty(symbol))
+            return BadRequest("Symbol is required.");
+
+        if( count <= 0)
+            return BadRequest("Count must be greater than zero.");
+
+        var results = await dbService.GetLatestHistoricalMarketDataAsync(symbol, count);
 
         return Ok(results);
     }

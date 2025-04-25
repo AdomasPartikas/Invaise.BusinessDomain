@@ -9,7 +9,7 @@ public class PortfolioHealth
     public int Id { get; set; }
 
     [Required]
-    public int PortfolioId { get; set; }
+    public required string PortfolioId { get; set; } = string.Empty;
 
     [Required]
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
