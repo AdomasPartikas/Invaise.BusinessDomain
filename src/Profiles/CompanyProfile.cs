@@ -16,10 +16,10 @@ public class CompanyProfile : Profile
     public CompanyProfile()
     {
         CreateMap<CompanyDto, Entities.Company>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()));
 
         CreateMap<CompanyProfile2, Entities.Company>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.FinnhubIndustry))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Exchange))

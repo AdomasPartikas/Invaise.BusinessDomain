@@ -13,8 +13,8 @@ public class UserPreferences
     
     public int RiskTolerance { get; set; } = 5; // Default to medium risk (scale 1-10)
     public string InvestmentHorizon { get; set; } = "Medium"; // Short, Medium, Long
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
     
     // Navigation property
     public virtual User User { get; set; } = null!;

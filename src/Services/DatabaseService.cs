@@ -166,7 +166,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     
     public async Task<User> UpdateUserAsync(User user)
     {
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow.ToLocalTime();
         context.Users.Update(user);
         await context.SaveChangesAsync();
         return user;
@@ -179,8 +179,8 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         if (existingInfo == null)
         {
             personalInfo.UserId = userId;
-            personalInfo.CreatedAt = DateTime.UtcNow;
-            personalInfo.UpdatedAt = DateTime.UtcNow;
+            personalInfo.CreatedAt = DateTime.UtcNow.ToLocalTime();
+            personalInfo.UpdatedAt = DateTime.UtcNow.ToLocalTime();
             context.UserPersonalInfo.Add(personalInfo);
         }
         else
@@ -194,7 +194,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
             existingInfo.City = personalInfo.City;
             existingInfo.PostalCode = personalInfo.PostalCode;
             existingInfo.Country = personalInfo.Country;
-            existingInfo.UpdatedAt = DateTime.UtcNow;
+            existingInfo.UpdatedAt = DateTime.UtcNow.ToLocalTime();
             context.UserPersonalInfo.Update(existingInfo);
             personalInfo = existingInfo;
         }
@@ -210,15 +210,15 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         if (existingPreferences == null)
         {
             preferences.UserId = userId;
-            preferences.CreatedAt = DateTime.UtcNow;
-            preferences.UpdatedAt = DateTime.UtcNow;
+            preferences.CreatedAt = DateTime.UtcNow.ToLocalTime();
+            preferences.UpdatedAt = DateTime.UtcNow.ToLocalTime();
             context.UserPreferences.Add(preferences);
         }
         else
         {
             existingPreferences.RiskTolerance = preferences.RiskTolerance;
             existingPreferences.InvestmentHorizon = preferences.InvestmentHorizon;
-            existingPreferences.UpdatedAt = DateTime.UtcNow;
+            existingPreferences.UpdatedAt = DateTime.UtcNow.ToLocalTime();
             context.UserPreferences.Update(existingPreferences);
             preferences = existingPreferences;
         }
@@ -259,8 +259,8 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     
     public async Task<Portfolio> CreatePortfolioAsync(Portfolio portfolio)
     {
-        portfolio.CreatedAt = DateTime.UtcNow;
-        portfolio.LastUpdated = DateTime.UtcNow;
+        portfolio.CreatedAt = DateTime.UtcNow.ToLocalTime();
+        portfolio.LastUpdated = DateTime.UtcNow.ToLocalTime();
         context.Portfolios.Add(portfolio);
         await context.SaveChangesAsync();
         return portfolio;
@@ -268,7 +268,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     
     public async Task<Portfolio> UpdatePortfolioAsync(Portfolio portfolio)
     {
-        portfolio.LastUpdated = DateTime.UtcNow;
+        portfolio.LastUpdated = DateTime.UtcNow.ToLocalTime();
         context.Portfolios.Update(portfolio);
         await context.SaveChangesAsync();
         return portfolio;
@@ -381,7 +381,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     
     public async Task<Company> CreateCompanyAsync(Company company)
     {
-        company.CreatedAt = DateTime.UtcNow;
+        company.CreatedAt = DateTime.UtcNow.ToLocalTime();
         context.Companies.Add(company);
         await context.SaveChangesAsync();
         return company;
@@ -428,7 +428,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
 
         existingAccount.Name = account.Name;
         existingAccount.Permissions = account.Permissions;
-        existingAccount.LastAuthenticated = DateTime.UtcNow;
+        existingAccount.LastAuthenticated = DateTime.UtcNow.ToLocalTime();
 
         context.ServiceAccounts.Update(existingAccount);
         await context.SaveChangesAsync();

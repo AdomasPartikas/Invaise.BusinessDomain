@@ -86,7 +86,7 @@ public class TransactionController(IDatabaseService dbService) : ControllerBase
             Quantity = request.Quantity,
             PricePerShare = request.PricePerShare,
             TransactionValue = request.Quantity * request.PricePerShare,
-            TransactionDate = request.TransactionDate ?? DateTime.UtcNow,
+            TransactionDate = request.TransactionDate ?? DateTime.UtcNow.ToLocalTime(),
             Type = request.Type,
             TriggeredBy = AvailableTransactionTriggers.User
         };

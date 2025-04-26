@@ -43,7 +43,7 @@ public class ModelPerformanceService(
         }
         
         // Check if enough time has passed since the last training
-        var daysSinceLastTraining = (DateTime.UtcNow - model.LastTrainedAt.Value).TotalDays;
+        var daysSinceLastTraining = (DateTime.UtcNow.ToLocalTime() - model.LastTrainedAt.Value).TotalDays;
         if (daysSinceLastTraining >= DEFAULT_RETRAINING_INTERVAL_DAYS)
         {
             logger.Information("Model {ModelId} was last trained {Days} days ago, exceeding the threshold of {Threshold} days", 
@@ -153,7 +153,7 @@ public class ModelPerformanceService(
                 if (!isStillTraining)
                 {
                     await aiModelService.UpdateModelStatusAsync(model.Id, AIModelStatus.Active);
-                    await aiModelService.UpdateModelTrainingDateAsync(model.Id, DateTime.UtcNow);
+                    await aiModelService.UpdateModelTrainingDateAsync(model.Id, DateTime.UtcNow.ToLocalTime());
                     logger.Information("Model {ModelId} training completed, status updated to Active", model.Id);
                 }
             }

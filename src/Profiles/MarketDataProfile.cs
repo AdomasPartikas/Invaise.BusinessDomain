@@ -18,7 +18,7 @@ public class MarketDataProfile : Profile
     public MarketDataProfile()
     {
         CreateMap<MarketDataDto, HistoricalMarketData>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()));
 
         CreateMap<Quote, IntradayMarketData>()
             .ForMember(dest => dest.Open, opt => opt.MapFrom(src => src.O))

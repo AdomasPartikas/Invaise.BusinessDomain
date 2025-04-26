@@ -34,7 +34,7 @@ public class ServiceAccount
     /// <summary>
     /// Gets or sets the created date and time of the service account.
     /// </summary>
-    public DateTime Created { get; set; } = DateTime.UtcNow;
+    public DateTime Created { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     /// <summary>
     /// Gets or sets the last auth date and time of the service account.

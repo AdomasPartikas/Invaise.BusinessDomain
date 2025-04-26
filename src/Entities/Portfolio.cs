@@ -19,7 +19,7 @@ public class Portfolio
     [Required]
     public PortfolioStrategy StrategyDescription { get; set; } = PortfolioStrategy.Balanced;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     public DateTime? LastUpdated { get; set; }
 

@@ -72,7 +72,7 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         }
         
         // Update last login timestamp
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = DateTime.UtcNow.ToLocalTime();
         await dbService.UpdateUserAsync(user);
         
         // Generate JWT token
@@ -158,7 +158,7 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
         var tokenHandler = new JwtSecurityTokenHandler();
-        var expiresAt = DateTime.UtcNow.AddHours(jwtExpiryHours);
+        var expiresAt = DateTime.UtcNow.ToLocalTime().AddHours(jwtExpiryHours);
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -188,7 +188,7 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
         var tokenHandler = new JwtSecurityTokenHandler();
-        var expiresAt = DateTime.UtcNow.AddMinutes(jwtExpiryMinutes);
+        var expiresAt = DateTime.UtcNow.ToLocalTime().AddMinutes(jwtExpiryMinutes);
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {

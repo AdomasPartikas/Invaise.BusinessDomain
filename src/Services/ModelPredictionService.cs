@@ -77,7 +77,7 @@ public class ModelPredictionService(
             // Ensure we have a timestamp
             if (prediction.Timestamp == default)
             {
-                prediction.Timestamp = DateTime.UtcNow;
+                prediction.Timestamp = DateTime.UtcNow.ToLocalTime();
             }
             
             dbContext.Predictions.Add(prediction);
@@ -215,9 +215,9 @@ public class ModelPredictionService(
             {
                 Symbol = symbol,
                 ModelSource = APOLLO_SOURCE,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToLocalTime(),
                 ModelVersion = await apolloService.GetModelVersionAsync(),
-                PredictionTarget = DateTime.UtcNow.Date.AddDays(30), // Apollo predicts for next month
+                PredictionTarget = DateTime.UtcNow.ToLocalTime().Date.AddDays(30), // Apollo predicts for next month
                 CurrentPrice = currentPrice,
                 PredictedPrice = (decimal)response.Value.Item2, // Simple example
                 Heat = response.Value.Item1
@@ -251,9 +251,9 @@ public class ModelPredictionService(
             {
                 Symbol = symbol,
                 ModelSource = IGNIS_SOURCE,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToLocalTime(),
                 ModelVersion = await ignisService.GetModelVersionAsync(),
-                PredictionTarget = DateTime.UtcNow.Date.AddMinutes(IgnisConstants.IgnisPredictionPeriod), // Ignis is real-time, so target is current time
+                PredictionTarget = DateTime.UtcNow.ToLocalTime().Date.AddMinutes(IgnisConstants.IgnisPredictionPeriod), // Ignis is real-time, so target is current time
                 CurrentPrice = currentPrice,
                 PredictedPrice = (decimal)response.Value.Item2, // Simple example
                 Heat = response.Value.Item1
@@ -287,7 +287,7 @@ public class ModelPredictionService(
             {
                 Symbol = symbol,
                 ModelSource = GAIA_SOURCE,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToLocalTime(),
                 ModelVersion = await gaiaService.GetModelVersionAsync(),
                 PredictionTarget = heat.Value.Item2, // Gaia combines Apollo and Ignis, we'll use a shorter timeframe
                 CurrentPrice = currentPrice,

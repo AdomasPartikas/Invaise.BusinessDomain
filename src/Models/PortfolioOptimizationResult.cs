@@ -7,6 +7,12 @@ namespace Invaise.BusinessDomain.API.Models;
 /// </summary>
 public class PortfolioOptimizationResult
 {
+
+    /// <summary>
+    /// Unique identifier for the optimization result
+    /// </summary>
+    public string OptimizationId { get; set; } = string.Empty;
+
     /// <summary>
     /// The user ID associated with this optimization
     /// </summary>

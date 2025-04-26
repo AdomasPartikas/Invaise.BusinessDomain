@@ -30,7 +30,7 @@ public class PortfolioOptimization
     /// Gets or sets the timestamp when the optimization was performed
     /// </summary>
     [Required]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow.ToLocalTime();
     
     /// <summary>
     /// Gets or sets the explanation of the optimization strategy

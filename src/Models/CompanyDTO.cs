@@ -49,5 +49,5 @@ public class CompanyDto
     /// Gets or sets the date and time when the company entity was created.
     /// Defaults to the current UTC date and time.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 }

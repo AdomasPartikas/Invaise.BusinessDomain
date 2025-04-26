@@ -103,7 +103,7 @@ public class GaiaService(
                 return new PortfolioOptimizationResult
                 {
                     UserId = "unknown",
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTime.UtcNow.ToLocalTime(),
                     Explanation = "Failed to get optimization from Gaia"
                 };
             }
@@ -118,7 +118,7 @@ public class GaiaService(
             return new PortfolioOptimizationResult
             {
                 UserId = "unknown",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToLocalTime(),
                 Explanation = $"Error optimizing portfolio: {ex.Message}"
             };
         }

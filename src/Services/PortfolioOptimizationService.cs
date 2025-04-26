@@ -35,7 +35,7 @@ public class PortfolioOptimizationService(
                     UserId = userId,
                     Successful = false,
                     ErrorMessage = $"Portfolio not found for user {userId}",
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.UtcNow.ToLocalTime()
                 };
             }
 
@@ -49,7 +49,7 @@ public class PortfolioOptimizationService(
                 {
                     UserId = userId,
                     Explanation = "No symbols found in portfolio to optimize",
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTime.UtcNow.ToLocalTime(),
                     Successful = false,
                     ErrorMessage = "No symbols found in portfolio to optimize"
                 };
@@ -62,6 +62,8 @@ public class PortfolioOptimizationService(
             var optimization = await StoreOptimizationResultAsync(portfolio.Id, optimizationResult);
 
             optimizationResult.Successful = true;
+            optimizationResult.OptimizationId = optimization.Id;
+            
             return optimizationResult;
         }
         catch (Exception ex)
@@ -72,7 +74,7 @@ public class PortfolioOptimizationService(
                 UserId = userId,
                 Successful = false,
                 ErrorMessage = $"Error optimizing portfolio: {ex.Message}",
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow.ToLocalTime()
             };
         }
     }
@@ -117,7 +119,7 @@ public class PortfolioOptimizationService(
 
             // Convert to result models
             var results = optimizations.Select(mapper.Map<PortfolioOptimizationResult>).ToList();
-            
+                        
             // Mark all results as successful
             foreach (var result in results)
             {
@@ -136,7 +138,7 @@ public class PortfolioOptimizationService(
                     UserId = userId,
                     Successful = false,
                     ErrorMessage = $"Error getting optimization history: {ex.Message}",
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.UtcNow.ToLocalTime()
                 }
             };
         }
@@ -197,7 +199,7 @@ public class PortfolioOptimizationService(
                 {
                     // Update existing stock
                     portfolioStock.Quantity = recommendation.TargetQuantity;
-                    portfolioStock.LastUpdated = DateTime.UtcNow;
+                    portfolioStock.LastUpdated = DateTime.UtcNow.ToLocalTime();
                 }
                 else if (recommendation.TargetQuantity > 0)
                 {
@@ -211,17 +213,17 @@ public class PortfolioOptimizationService(
                         CurrentTotalValue = 0, // Will be updated by the portfolio service
                         TotalBaseValue = 0, // Will be updated by the portfolio service
                         PercentageChange = 0, // Will be updated by the portfolio service
-                        LastUpdated = DateTime.UtcNow
+                        LastUpdated = DateTime.UtcNow.ToLocalTime()
                     });
                 }
             }
 
             // Update the portfolio
-            portfolio.LastUpdated = DateTime.UtcNow;
+            portfolio.LastUpdated = DateTime.UtcNow.ToLocalTime();
 
             // Mark the optimization as applied
             optimization.IsApplied = true;
-            optimization.AppliedDate = DateTime.UtcNow;
+            optimization.AppliedDate = DateTime.UtcNow.ToLocalTime();
 
             await dbContext.SaveChangesAsync();
             var optimizationResult = mapper.Map<PortfolioOptimizationResult>(optimization);

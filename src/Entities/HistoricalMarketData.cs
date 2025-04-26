@@ -54,6 +54,6 @@ public class HistoricalMarketData
     /// Gets or sets the timestamp when the market data entry was created.
     /// Defaults to the current UTC time.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 }
 

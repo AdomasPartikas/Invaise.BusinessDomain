@@ -343,7 +343,7 @@ try
         
     // RecurringJob.AddOrUpdate<IPerformanceService>(
     //     "evaluate-model-performance",
-    //     service => service.EvaluateModelPerformanceAsync(0, DateTime.UtcNow.AddDays(-7), DateTime.UtcNow),
+    //     service => service.EvaluateModelPerformanceAsync(0, DateTime.UtcNow.ToLocalTime().AddDays(-7), DateTime.UtcNow.ToLocalTime()),
     //     "0 4 * * *");
 
     // Configure the HTTP request pipeline.

@@ -81,7 +81,7 @@ public class UserPersonalInfo
     /// <summary>
     /// Gets or sets the date and time when the record was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     /// <summary>
     /// Gets or sets the date and time when the record was last updated.

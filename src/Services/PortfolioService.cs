@@ -31,7 +31,7 @@ public class PortfolioService(IDatabaseService dbService) : IPortfolioService
             {
                 stock.CurrentTotalValue = stock.Quantity * stockPrice.Value;
                 stock.PercentageChange = ((stock.CurrentTotalValue - stock.TotalBaseValue) / stock.TotalBaseValue) * 100;
-                stock.LastUpdated = DateTime.UtcNow;
+                stock.LastUpdated = DateTime.UtcNow.ToLocalTime();
 
                 await dbService.UpdatePortfolioStockAsync(stock);
             }

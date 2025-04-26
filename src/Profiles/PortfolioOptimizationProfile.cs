@@ -68,6 +68,7 @@ public class PortfolioOptimizationProfile : Profile
 
 
         CreateMap<PortfolioOptimization, PortfolioOptimizationResult>()
+            .ForMember(dest => dest.OptimizationId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.Explanation, opt => opt.MapFrom(src => src.Explanation))
             .ForMember(dest => dest.Confidence, opt => opt.MapFrom(src => src.Confidence))

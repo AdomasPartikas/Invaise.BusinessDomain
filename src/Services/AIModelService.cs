@@ -53,7 +53,7 @@ public class AIModelService(InvaiseDbContext dbContext, Serilog.ILogger logger) 
     {
         try
         {
-            model.LastUpdated = DateTime.UtcNow;
+            model.LastUpdated = DateTime.UtcNow.ToLocalTime();
             dbContext.AIModels.Update(model);
             var affected = await dbContext.SaveChangesAsync();
             return affected > 0;
@@ -77,7 +77,7 @@ public class AIModelService(InvaiseDbContext dbContext, Serilog.ILogger logger) 
             }
 
             model.ModelStatus = status;
-            model.LastUpdated = DateTime.UtcNow;
+            model.LastUpdated = DateTime.UtcNow.ToLocalTime();
             
             var affected = await dbContext.SaveChangesAsync();
             return affected > 0;
@@ -101,7 +101,7 @@ public class AIModelService(InvaiseDbContext dbContext, Serilog.ILogger logger) 
             }
 
             model.LastTrainedAt = trainedAt;
-            model.LastUpdated = DateTime.UtcNow;
+            model.LastUpdated = DateTime.UtcNow.ToLocalTime();
             
             var affected = await dbContext.SaveChangesAsync();
             return affected > 0;

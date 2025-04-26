@@ -41,7 +41,7 @@ public class User
     /// Gets or sets the date and time when the user was created.
     /// </summary>
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     /// <summary>
     /// Gets or sets the date and time when the user was last updated.

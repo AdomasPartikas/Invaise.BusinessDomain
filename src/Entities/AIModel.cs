@@ -46,7 +46,7 @@ public class AIModel
     /// This field defaults to the current UTC date and time.
     /// </summary>
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     /// <summary>
     /// Gets or sets the date and time when the AI model was last updated.

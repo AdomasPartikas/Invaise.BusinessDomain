@@ -98,7 +98,7 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
             existingStock.First(s => s.Symbol == request.Symbol).CurrentTotalValue += request.CurrentTotalValue;
             existingStock.First(s => s.Symbol == request.Symbol).TotalBaseValue += request.TotalBaseValue;
             existingStock.First(s => s.Symbol == request.Symbol).PercentageChange = request.PercentageChange;
-            existingStock.First(s => s.Symbol == request.Symbol).LastUpdated = DateTime.UtcNow;
+            existingStock.First(s => s.Symbol == request.Symbol).LastUpdated = DateTime.UtcNow.ToLocalTime();
 
             var updatedStock = await dbService.UpdatePortfolioStockAsync(existingStock.First(s => s.Symbol == request.Symbol));
             return Ok(updatedStock);
@@ -113,7 +113,7 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
                 CurrentTotalValue = request.CurrentTotalValue,
                 TotalBaseValue = request.TotalBaseValue,
                 PercentageChange = request.PercentageChange,
-                LastUpdated = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow.ToLocalTime(),
                 Portfolio = portfolio
             };
 
@@ -162,7 +162,7 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
         if (request.PercentageChange.HasValue)
             existingStock.PercentageChange = request.PercentageChange.Value;
             
-        existingStock.LastUpdated = DateTime.UtcNow;
+        existingStock.LastUpdated = DateTime.UtcNow.ToLocalTime();
         
         var updatedStock = await dbService.UpdatePortfolioStockAsync(existingStock);
         return Ok(updatedStock);

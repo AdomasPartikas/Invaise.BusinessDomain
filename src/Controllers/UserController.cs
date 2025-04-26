@@ -72,7 +72,7 @@ public class UserController(IDatabaseService dbService, IMapper mapper) : Contro
                 UserId = id,
                 Address = model.Address ?? string.Empty,
                 PhoneNumber = model.PhoneNumber ?? string.Empty,
-                DateOfBirth = model.DateOfBirth ?? DateTime.UtcNow,
+                DateOfBirth = model.DateOfBirth ?? DateTime.UtcNow.ToLocalTime(),
                 LegalFirstName = currentUser.DisplayName.Split(' ').FirstOrDefault() ?? string.Empty,
                 LegalLastName = string.Join(" ", currentUser.DisplayName.Split(' ').Skip(1)) ?? string.Empty,
                 City = "Not Specified",

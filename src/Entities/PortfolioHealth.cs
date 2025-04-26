@@ -12,7 +12,7 @@ public class PortfolioHealth
     public required string PortfolioId { get; set; } = string.Empty;
 
     [Required]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow.ToLocalTime();
 
     [Required]
     public decimal TotalValue { get; set; }
