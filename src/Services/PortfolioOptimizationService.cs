@@ -1,3 +1,4 @@
+using AutoMapper;
 using Invaise.BusinessDomain.API.Context;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Interfaces;
@@ -13,17 +14,16 @@ public class PortfolioOptimizationService(
     IDatabaseService databaseService,
     InvaiseDbContext dbContext,
     IGaiaService gaiaService,
-    Serilog.ILogger logger) : IPortfolioOptimizationService
+    Serilog.ILogger logger,
+    IMapper mapper) : IPortfolioOptimizationService
 {
     /// <inheritdoc />
-    public async Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, string? portfolioId = null)
+    public async Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, string portfolioId)
     {
         try
         {
             // Get the portfolio (default or specified)
-            var portfolio = portfolioId == null
-                ? await GetDefaultPortfolioAsync(userId)
-                : await dbContext.Portfolios
+            var portfolio = await dbContext.Portfolios
                     .Include(p => p.PortfolioStocks)
                     .FirstOrDefaultAsync(p => p.Id == portfolioId && p.UserId == userId);
 
@@ -42,7 +42,7 @@ public class PortfolioOptimizationService(
             // Get symbols from the portfolio
             var symbols = portfolio.PortfolioStocks.Select(ps => ps.Symbol).ToList();
 
-            if (!symbols.Any())
+            if (symbols.Count == 0)
             {
                 logger.Warning("No symbols found in portfolio {PortfolioId} for user {UserId}", portfolio.Id, userId);
                 return new PortfolioOptimizationResult
@@ -56,7 +56,7 @@ public class PortfolioOptimizationService(
             }
 
             // Call Gaia service to optimize the portfolio
-            var optimizationResult = await gaiaService.OptimizePortfolioAsync(userId, symbols);
+            var optimizationResult = await gaiaService.OptimizePortfolioAsync(portfolioId);
 
             // Store the optimization in the database
             var optimization = await StoreOptimizationResultAsync(portfolio.Id, optimizationResult);
@@ -79,14 +79,12 @@ public class PortfolioOptimizationService(
 
     /// <inheritdoc />
     public async Task<IEnumerable<PortfolioOptimizationResult>> GetOptimizationHistoryAsync(
-        string userId, string? portfolioId = null, DateTime? startDate = null, DateTime? endDate = null)
+        string userId, string portfolioId, DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
             // Get the portfolio (default or specified)
-            var portfolio = portfolioId == null
-                ? await GetDefaultPortfolioAsync(userId)
-                : await dbContext.Portfolios
+            var portfolio = await dbContext.Portfolios
                     .FirstOrDefaultAsync(p => p.Id == portfolioId && p.UserId == userId);
 
             if (portfolio == null)
@@ -99,14 +97,14 @@ public class PortfolioOptimizationService(
                         UserId = userId,
                         Successful = false,
                         ErrorMessage = $"Portfolio not found for user {userId}",
-                        Timestamp = DateTime.UtcNow
+                        Timestamp = DateTime.UtcNow.ToLocalTime()
                     }
                 };
             }
 
             // Define start and end dates if not specified
-            var effectiveStartDate = startDate ?? DateTime.UtcNow.AddMonths(-1);
-            var effectiveEndDate = endDate ?? DateTime.UtcNow;
+            var effectiveStartDate = startDate ?? DateTime.UtcNow.AddMonths(-1).ToLocalTime();
+            var effectiveEndDate = endDate ?? DateTime.UtcNow.ToLocalTime();
 
             // Get optimizations from the database
             var optimizations = await dbContext.PortfolioOptimizations
@@ -118,7 +116,7 @@ public class PortfolioOptimizationService(
                 .ToListAsync();
 
             // Convert to result models
-            var results = optimizations.Select(MapToOptimizationResult).ToList();
+            var results = optimizations.Select(mapper.Map<PortfolioOptimizationResult>).ToList();
             
             // Mark all results as successful
             foreach (var result in results)
@@ -184,7 +182,7 @@ public class PortfolioOptimizationService(
             if (optimization.IsApplied)
             {
                 logger.Warning("Optimization {OptimizationId} has already been applied", optimizationId);
-                var result = MapToOptimizationResult(optimization);
+                var result = mapper.Map<PortfolioOptimizationResult>(optimization);
                 result.Successful = false;
                 result.ErrorMessage = $"Optimization {optimizationId} has already been applied";
                 return result;
@@ -226,7 +224,7 @@ public class PortfolioOptimizationService(
             optimization.AppliedDate = DateTime.UtcNow;
 
             await dbContext.SaveChangesAsync();
-            var optimizationResult = MapToOptimizationResult(optimization);
+            var optimizationResult = mapper.Map<PortfolioOptimizationResult>(optimization);
             optimizationResult.Successful = true;
             return optimizationResult;
         }
@@ -244,88 +242,16 @@ public class PortfolioOptimizationService(
 
     #region Private Helper Methods
 
-    private async Task<Portfolio?> GetDefaultPortfolioAsync(string userId)
-    {
-        return await dbContext.Portfolios
-            .Include(p => p.PortfolioStocks)
-            .Where(p => p.UserId == userId)
-            .OrderBy(p => p.CreatedAt)
-            .FirstOrDefaultAsync();
-    }
-
     private async Task<PortfolioOptimization> StoreOptimizationResultAsync(string portfolioId, PortfolioOptimizationResult result)
     {
-        var optimization = new PortfolioOptimization
-        {
-            UserId = result.UserId,
-            PortfolioId = portfolioId,
-            Timestamp = result.Timestamp,
-            Explanation = result.Explanation,
-            Confidence = result.Confidence,
-            ModelVersion = await gaiaService.GetModelVersionAsync(),
-            IsApplied = false,
-            // Store portfolio metrics
-            SharpeRatio = result.Metrics.SharpeRatio,
-            MeanReturn = result.Metrics.MeanReturn,
-            Variance = result.Metrics.Variance,
-            ExpectedReturn = result.Metrics.ExpectedReturn
-        };
-
-        // Add recommendations
-        foreach (var rec in result.Recommendations)
-        {
-            optimization.Recommendations.Add(new PortfolioOptimizationRecommendation
-            {
-                Symbol = rec.Symbol,
-                Action = rec.Action,
-                CurrentQuantity = rec.CurrentQuantity,
-                TargetQuantity = rec.TargetQuantity,
-                CurrentWeight = rec.CurrentWeight,
-                TargetWeight = rec.TargetWeight,
-                Explanation = rec.Explanation
-            });
-        }
+        var optimization = mapper.Map<PortfolioOptimization>(result);
+        optimization.PortfolioId = portfolioId; // Set the portfolio ID
+        optimization.ModelVersion = await gaiaService.GetModelVersionAsync();
 
         dbContext.PortfolioOptimizations.Add(optimization);
         await dbContext.SaveChangesAsync();
 
         return optimization;
-    }
-
-    private PortfolioOptimizationResult MapToOptimizationResult(PortfolioOptimization optimization)
-    {
-        var result = new PortfolioOptimizationResult
-        {
-            UserId = optimization.UserId,
-            Explanation = optimization.Explanation,
-            Confidence = optimization.Confidence,
-            Timestamp = optimization.Timestamp,
-            // Map portfolio metrics
-            Metrics = new PortfolioMetrics
-            {
-                SharpeRatio = optimization.SharpeRatio,
-                MeanReturn = optimization.MeanReturn,
-                Variance = optimization.Variance,
-                ExpectedReturn = optimization.ExpectedReturn
-            }
-        };
-
-        // Map recommendations
-        foreach (var rec in optimization.Recommendations)
-        {
-            result.Recommendations.Add(new PortfolioRecommendation
-            {
-                Symbol = rec.Symbol,
-                Action = rec.Action,
-                CurrentQuantity = rec.CurrentQuantity,
-                TargetQuantity = rec.TargetQuantity,
-                CurrentWeight = rec.CurrentWeight,
-                TargetWeight = rec.TargetWeight,
-                Explanation = rec.Explanation
-            });
-        }
-
-        return result;
     }
 
     #endregion

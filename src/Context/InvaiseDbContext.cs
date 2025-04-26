@@ -49,6 +49,8 @@ public class InvaiseDbContext : DbContext
     public DbSet<AIModel> AIModels { get; set; } = null!;
     public DbSet<Prediction> Predictions { get; set; } = null!;
     public DbSet<Heat> Heats { get; set; } = null!;
+
+    public DbSet<ServiceAccount> ServiceAccounts { get; set; } = null!;
     
     /// <summary>
     /// Gets or sets the collection of portfolio optimizations in the database.

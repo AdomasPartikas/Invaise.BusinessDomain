@@ -21,6 +21,9 @@ public interface IAuthService
     /// <param name="login">The login credentials.</param>
     /// <returns>The authentication response containing token and user information.</returns>
     Task<AuthResponse> LoginAsync(LoginModel login);
+
+    Task<AuthResponse> ServiceLoginAsync(ServiceLoginModel model);
+    Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions);
     
     /// <summary>
     /// Generates a JWT token for a user.
@@ -43,11 +46,6 @@ public interface IAuthService
     /// <param name="password">The password to hash.</param>
     /// <returns>The hashed password.</returns>
     string HashPassword(string password);
-    
-    /// <summary>
-    /// Maps a user entity to a user DTO.
-    /// </summary>
-    /// <param name="user">The user entity to map.</param>
-    /// <returns>The mapped user DTO.</returns>
-    UserDto MapUserToDto(User user);
+
+    string GenerateSecureKey();
 } 

@@ -21,14 +21,19 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
     [HttpGet("portfolio/{portfolioId}")]
     public async Task<IActionResult> GetPortfolioStocks(string portfolioId)
     {
+        var isServiceAccount = HttpContext.Items["ServiceAccount"] != null;
         var currentUser = (User)HttpContext.Items["User"]!;
+
+        if (!isServiceAccount && currentUser == null)
+            return Unauthorized(new { message = "Unauthorized" });
+
         var portfolio = await dbService.GetPortfolioByIdAsync(portfolioId);
         
         if (portfolio == null)
             return NotFound(new { message = "Portfolio not found" });
             
         // Ensure user can only access their own portfolios
-        if (portfolio.UserId != currentUser.Id && currentUser.Role != "Admin")
+        if (!isServiceAccount && portfolio.UserId != currentUser.Id && currentUser.Role != "Admin")
             return Forbid();
             
         var stocks = await dbService.GetPortfolioStocksAsync(portfolioId);

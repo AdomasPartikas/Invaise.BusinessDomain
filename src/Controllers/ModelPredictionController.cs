@@ -36,27 +36,6 @@ public class ModelPredictionController(IModelPredictionService modelPredictionSe
     }
     
     /// <summary>
-    /// Gets the latest predictions for multiple symbols from a specific model source
-    /// </summary>
-    /// <param name="symbols">Comma-separated list of stock symbols</param>
-    /// <param name="modelSource">The model source (e.g., "Apollo", "Ignis")</param>
-    /// <returns>Dictionary mapping symbols to predictions</returns>
-    [HttpGet("batch/{modelSource}")]
-    public async Task<ActionResult<Dictionary<string, Prediction>>> GetLatestPredictions([FromQuery] string symbols, string modelSource)
-    {
-        try
-        {
-            var symbolList = symbols.Split(',').Select(s => s.Trim()).ToList();
-            var predictions = await modelPredictionService.GetLatestPredictionsAsync(symbolList, modelSource);
-            return Ok(predictions);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Error retrieving predictions: {ex.Message}");
-        }
-    }
-    
-    /// <summary>
     /// Gets all available predictions for a symbol from all model sources
     /// </summary>
     /// <param name="symbol">The stock symbol</param>
@@ -125,6 +104,30 @@ public class ModelPredictionController(IModelPredictionService modelPredictionSe
         catch (Exception ex)
         {
             return StatusCode(500, $"Error refreshing predictions: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Refreshes predictions for a portfolio from Gaia
+    /// </summary>
+    /// <param name="portfolioId">The portfolio ID</param>
+    /// <returns>Dictionary mapping model sources to refreshed predictions</returns>
+    [HttpPost("portfolio/{portfolioId}/refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Dictionary<string, Prediction>))]
+    public async Task<ActionResult<Dictionary<string, Prediction>>> RefreshPortfolioPredictions(string portfolioId)
+    {
+        try
+        {
+            var predictions = await modelPredictionService.RefreshPortfolioPredictionsAsync(portfolioId);
+            if (predictions.Count == 0)
+            {
+                return NotFound($"Failed to get predictions for portfolio {portfolioId}");
+            }
+            return Ok(predictions);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error refreshing portfolio predictions: {ex.Message}");
         }
     }
     

@@ -1,7 +1,7 @@
 using Invaise.BusinessDomain.API.Interfaces;
 using Invaise.BusinessDomain.API.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Invaise.BusinessDomain.API.Controllers;
 
 /// <summary>
@@ -9,19 +9,8 @@ namespace Invaise.BusinessDomain.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("auth")]
-public class AuthController : ControllerBase
-{
-    private readonly IAuthService _authService;
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthController"/> class.
-    /// </summary>
-    /// <param name="authService">The authentication service.</param>
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-    
+public class AuthController(IAuthService authService) : ControllerBase
+{   
     /// <summary>
     /// Registers a new user.
     /// </summary>
@@ -32,7 +21,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var response = await _authService.RegisterAsync(model);
+            var response = await authService.RegisterAsync(model);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -55,7 +44,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var response = await _authService.LoginAsync(model);
+            var response = await authService.LoginAsync(model);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
@@ -65,6 +54,25 @@ public class AuthController : ControllerBase
         catch (Exception)
         {
             return StatusCode(500, new { message = "An error occurred during login" });
+        }
+    }
+
+    [HttpPost("service/login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ServiceLogin([FromBody] ServiceLoginModel model)
+    {
+        try
+        {
+            var response = await authService.ServiceLoginAsync(model);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "An error occurred during service login" });
         }
     }
 } 

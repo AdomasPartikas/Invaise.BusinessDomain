@@ -36,5 +36,10 @@ public class UserProfile : Profile
             .ForMember(dest => dest.GovernmentId, opt => opt.Ignore());
         
         CreateMap<UserPreferences, UserPreferencesDto>();
+
+        CreateMap<ServiceAccount, UserDto>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.PersonalInfo, opt => opt.Ignore())
+            .ForMember(dest => dest.Preferences, opt => opt.Ignore());
     }
 } 

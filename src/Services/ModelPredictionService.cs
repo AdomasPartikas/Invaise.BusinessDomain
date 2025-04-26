@@ -15,7 +15,6 @@ public class ModelPredictionService(
         IApolloService apolloService,
         IIgnisService ignisService,
         IGaiaService gaiaService,
-        IMarketDataService marketDataService,
         Serilog.ILogger logger) : IModelPredictionService
 {
     // Using constants from ModelConstants
@@ -38,37 +37,6 @@ public class ModelPredictionService(
         {
             logger.Error(ex, "Error retrieving latest prediction for {Symbol} from {ModelSource}", symbol, modelSource);
             return null;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<Dictionary<string, Prediction>> GetLatestPredictionsAsync(IEnumerable<string> symbols, string modelSource)
-    {
-        var result = new Dictionary<string, Prediction>();
-        
-        try
-        {
-            var symbolsList = symbols.ToList();
-            
-            // Get the most recent prediction for each symbol from the specified model source
-            var latestPredictions = await dbContext.Predictions
-                .Include(p => p.Heat)
-                .Where(p => symbolsList.Contains(p.Symbol) && p.ModelSource == modelSource)
-                .GroupBy(p => p.Symbol)
-                .Select(g => g.OrderByDescending(p => p.Timestamp).FirstOrDefault())
-                .ToListAsync();
-                
-            foreach (var prediction in latestPredictions.Where(p => p != null))
-            {
-                result[prediction.Symbol] = prediction;
-            }
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error retrieving latest predictions from {ModelSource}", modelSource);
-            return result;
         }
     }
 
@@ -147,6 +115,36 @@ public class ModelPredictionService(
         }
     }
 
+    public async Task<Dictionary<string, Prediction>> RefreshPortfolioPredictionsAsync(string portfolioId)
+    {
+        var result = new Dictionary<string, Prediction>();
+
+        try
+        {
+            // Get all symbols in the portfolio
+            var portfolio = await databaseService.GetPortfolioByIdWithPortfolioStocksAsync(portfolioId);
+            if (portfolio == null) return result;
+            
+            var symbols = portfolio.PortfolioStocks.Select(s => s.Symbol).ToList();
+            
+            foreach (var symbol in symbols)
+            {
+                var prediction = await FetchAndStorePredictionFromGaia(symbol, portfolioId);
+                if (prediction != null)
+                {
+                    result[symbol] = prediction;
+                }
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error refreshing portfolio predictions for {PortfolioId}", portfolioId);
+            return result;
+        }
+    }
+
     /// <inheritdoc />
     public async Task<Dictionary<string, Prediction>> RefreshPredictionsAsync(string symbol)
     {
@@ -166,13 +164,6 @@ public class ModelPredictionService(
             if (ignisPrediction != null)
             {
                 result[IGNIS_SOURCE] = ignisPrediction;
-            }
-            
-            // Get prediction from Gaia (ensemble predictor)
-            var gaiaPrediction = await FetchAndStorePredictionFromGaia(symbol);
-            if (gaiaPrediction != null)
-            {
-                result[GAIA_SOURCE] = gaiaPrediction;
             }
             
             return result;
@@ -278,12 +269,12 @@ public class ModelPredictionService(
         }
     }
     
-    private async Task<Prediction?> FetchAndStorePredictionFromGaia(string symbol)
+    private async Task<Prediction?> FetchAndStorePredictionFromGaia(string symbol, string portfolioId)
     {
         try
         {
             // Get heat prediction from Gaia service
-            var heat = await gaiaService.GetHeatPredictionAsync(symbol);
+            var heat = await gaiaService.GetHeatPredictionAsync(symbol, portfolioId);
             
             if (heat is null) return null;
             
@@ -298,10 +289,10 @@ public class ModelPredictionService(
                 ModelSource = GAIA_SOURCE,
                 Timestamp = DateTime.UtcNow,
                 ModelVersion = await gaiaService.GetModelVersionAsync(),
-                PredictionTarget = DateTime.UtcNow.Date.AddHours(1), // Gaia combines Apollo and Ignis, we'll use a shorter timeframe
+                PredictionTarget = heat.Value.Item2, // Gaia combines Apollo and Ignis, we'll use a shorter timeframe
                 CurrentPrice = currentPrice,
-                PredictedPrice = (heat?.HeatScore ?? 0) > 0.5 ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example based on heat score
-                Heat = heat
+                PredictedPrice = (decimal)heat.Value.Item3, // Simple example based on heat score
+                Heat = heat.Value.Item1
             };
             
             await StorePredictionAsync(prediction);
@@ -311,51 +302,6 @@ public class ModelPredictionService(
         {
             logger.Error(ex, "Error fetching prediction from Gaia for {Symbol}", symbol);
             return null;
-        }
-    }
-    
-    private async Task<Dictionary<string, Prediction>> FetchAndStorePredictionsFromGaia(List<string> symbols)
-    {
-        try
-        {
-            // Get heat predictions from Gaia service for all symbols
-            var heats = await gaiaService.GetHeatPredictionsAsync(symbols);
-            var predictions = new Dictionary<string, Prediction>();
-            
-            if (heats == null || !heats.Any()) return predictions;
-            
-            var modelVersion = await gaiaService.GetModelVersionAsync();
-            var now = DateTime.UtcNow;
-            
-            // Create predictions for all symbols with heat data
-            foreach (var (symbol, heat) in heats)
-            {
-                // Get current price for the symbol from market data service
-                var intradayMarketDataLatest = await databaseService.GetLatestIntradayMarketDataAsync(symbol);
-                var currentPrice = intradayMarketDataLatest?.Current ?? 0;
-                
-                var prediction = new Prediction
-                {
-                    Symbol = symbol,
-                    ModelSource = GAIA_SOURCE,
-                    Timestamp = now,
-                    ModelVersion = modelVersion,
-                    PredictionTarget = now.AddHours(1), // Gaia combines Apollo and Ignis
-                    CurrentPrice = currentPrice,
-                    PredictedPrice = (decimal?)(heat?.HeatScore ?? 0) > 0.5m ? currentPrice * 1.01m : currentPrice * 0.99m, // Simple example
-                    Heat = heat
-                };
-                
-                await StorePredictionAsync(prediction);
-                predictions[symbol] = prediction;
-            }
-            
-            return predictions;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error fetching predictions from Gaia for multiple symbols");
-            return new Dictionary<string, Prediction>();
         }
     }
     

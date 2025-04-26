@@ -19,14 +19,6 @@ public interface IModelPredictionService
     Task<Prediction?> GetLatestPredictionAsync(string symbol, string modelSource);
     
     /// <summary>
-    /// Gets the latest predictions for multiple symbols from a specific model source
-    /// </summary>
-    /// <param name="symbols">List of stock symbols</param>
-    /// <param name="modelSource">The source model (e.g., "Apollo", "Ignis")</param>
-    /// <returns>Dictionary mapping symbols to predictions</returns>
-    Task<Dictionary<string, Prediction>> GetLatestPredictionsAsync(IEnumerable<string> symbols, string modelSource);
-    
-    /// <summary>
     /// Gets all available predictions for a symbol from all model sources
     /// </summary>
     /// <param name="symbol">The stock symbol</param>
@@ -51,9 +43,16 @@ public interface IModelPredictionService
     Task<IEnumerable<Prediction>> GetHistoricalPredictionsAsync(string symbol, string modelSource, DateTime startDate, DateTime endDate);
     
     /// <summary>
-    /// Refreshes predictions for a symbol from all model sources
+    /// Refreshes predictions for a symbol from all model sources that are not Gaia
     /// </summary>
     /// <param name="symbol">The stock symbol</param>
     /// <returns>Dictionary mapping model sources to refreshed predictions</returns>
     Task<Dictionary<string, Prediction>> RefreshPredictionsAsync(string symbol);
+
+    /// <summary>
+    /// Refreshes predictions for a portfolio from Gaia
+    /// </summary>
+    /// <param name="portfolioId">The portfolio ID</param>
+    /// <returns>Dictionary mapping model sources to refreshed predictions</returns>
+    Task<Dictionary<string, Prediction>> RefreshPortfolioPredictionsAsync(string portfolioId);
 } 

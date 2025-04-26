@@ -99,6 +99,13 @@ public interface IDatabaseService
     Task<Portfolio?> GetPortfolioByIdAsync(string portfolioId);
 
     /// <summary>
+    /// Gets a portfolio by its ID along with its stocks.
+    /// </summary>
+    /// <param name="portfolioId">The portfolio ID.</param>
+    /// <returns>The portfolio with its stocks if found, null otherwise.</returns>
+    Task<Portfolio?> GetPortfolioByIdWithPortfolioStocksAsync(string portfolioId);
+
+    /// <summary>
     /// Creates a new portfolio.
     /// </summary>
     /// <param name="portfolio">The portfolio entity to create.</param>
@@ -215,4 +222,10 @@ public interface IDatabaseService
     /// <param name="id">The company stock ID to delete.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
     Task<bool> DeleteCompanyAsync(int id);
+
+    //For service account
+
+    Task<ServiceAccount?> GetServiceAccountAsync(string id);
+    Task CreateServiceAccountAsync(ServiceAccount serviceAccount);
+    Task<ServiceAccount> UpdateServiceAccountAsync(string id, ServiceAccount account);
 }

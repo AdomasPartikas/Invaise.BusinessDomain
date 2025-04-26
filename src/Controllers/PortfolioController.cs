@@ -34,14 +34,21 @@ public class PortfolioController(IDatabaseService dbService) : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPortfolio(string id)
     {
-        var currentUser = (User)HttpContext.Items["User"]!;
+        var isServiceAccount = HttpContext.Items["ServiceAccount"] != null;
+        var currentUser = HttpContext.Items["User"] as User;
+        
+        // If this is a service account, we can proceed without user validation
+        // If this is a regular user account, ensure the user is valid
+        if (!isServiceAccount && currentUser == null)
+            return Unauthorized(new { message = "Unauthorized" });
+            
         var portfolio = await dbService.GetPortfolioByIdAsync(id);
         
         if (portfolio == null)
             return NotFound(new { message = "Portfolio not found" });
             
-        // Ensure user can only access their own portfolios
-        if (portfolio.UserId != currentUser.Id && currentUser.Role != "Admin")
+        // If this is a regular user account, ensure they can only access their own portfolios
+        if (!isServiceAccount && portfolio.UserId != currentUser!.Id && currentUser!.Role != "Admin")
             return Forbid();
             
         return Ok(portfolio);

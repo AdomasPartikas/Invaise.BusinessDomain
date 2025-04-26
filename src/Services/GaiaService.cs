@@ -1,3 +1,4 @@
+using AutoMapper;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.GaiaAPIClient;
 using Invaise.BusinessDomain.API.Interfaces;
@@ -14,7 +15,8 @@ public class GaiaService(
         IPredictGaiaClient gaiaPredictClient,
         IOptimizeGaiaClient gaiaOptimizeClient,
         IWeightsGaiaClient gaiaWeightsClient,
-        Serilog.ILogger logger) : IGaiaService
+        Serilog.ILogger logger,
+        IMapper mapper) : IGaiaService
 {
 
     /// <inheritdoc/>
@@ -55,28 +57,27 @@ public class GaiaService(
     }
 
     /// <inheritdoc />
-    public async Task<Heat?> GetHeatPredictionAsync(string symbol, string? userId = null)
+    public async Task<(Heat, DateTime, double)?> GetHeatPredictionAsync(string symbol, string portfolioId)
     {
         try
         {
             var request = new PredictionRequest 
             { 
-                Symbol = symbol
+                Symbol = symbol,
+                Portfolio_id = portfolioId
             };
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                request.User_id = userId != null 
-                    ? new User_id { AdditionalProperties = new Dictionary<string, object> { { "user_id", userId } } }
-                    : new User_id { AdditionalProperties = new Dictionary<string, object>() };
-            }
             
             var response = await gaiaPredictClient.PostAsync(request);
             
             if (response == null)
                 return null;
             
-            return MapToHeat(response.Combined_heat, symbol);
+            var heat = mapper.Map<Heat>(response);
+
+            var prediction = response.Combined_heat.Predicted_price;
+            var targetDate = DateTime.Parse(response.Combined_heat.Prediction_target);
+
+            return (heat, targetDate, prediction);
         }
         catch (Exception ex)
         {
@@ -86,40 +87,13 @@ public class GaiaService(
     }
 
     /// <inheritdoc />
-    public async Task<Dictionary<string, Heat>> GetHeatPredictionsAsync(IEnumerable<string> symbols, string? userId = null)
-    {
-        var result = new Dictionary<string, Heat>();
-        
-        try
-        {
-            // Gaia doesn't have a batch prediction endpoint, so we need to call it sequentially
-            foreach (var symbol in symbols)
-            {
-                var heat = await GetHeatPredictionAsync(symbol, userId);
-                if (heat != null)
-                {
-                    result[symbol] = heat;
-                }
-            }
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error getting heat predictions from Gaia");
-            return result;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, IEnumerable<string> symbols)
+    public async Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string portfolioId)
     {
         try
         {
             var request = new OptimizationRequest
             {
-                User_id = userId,
-                Symbols = symbols.ToList()
+                Portfolio_id = portfolioId
             };
             
             var response = await gaiaOptimizeClient.PostAsync(request);
@@ -128,25 +102,22 @@ public class GaiaService(
             {
                 return new PortfolioOptimizationResult
                 {
-                    UserId = userId,
+                    UserId = "unknown",
                     Timestamp = DateTime.UtcNow,
                     Explanation = "Failed to get optimization from Gaia"
                 };
             }
             
-            // Convert the dynamic response to a typed response
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(response);
-            var gaiaResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<GaiaOptimizationResponse>(json);
             
-            return MapToOptimizationResult(gaiaResponse);
+            return mapper.Map<PortfolioOptimizationResult>(response);
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Error optimizing portfolio with Gaia for user {UserId}", userId);
+            logger.Error(ex, "Error optimizing portfolio with Gaia for portfolio {PortfolioId}", portfolioId);
             
             return new PortfolioOptimizationResult
             {
-                UserId = userId,
+                UserId = "unknown",
                 Timestamp = DateTime.UtcNow,
                 Explanation = $"Error optimizing portfolio: {ex.Message}"
             };
@@ -173,96 +144,4 @@ public class GaiaService(
             return false;
         }
     }
-
-    #region Private Helper Methods
-
-    private Heat MapToHeat(HeatData heatData, string symbol)
-    {
-        return new Heat
-        {
-            Symbol = symbol,
-            HeatScore = heatData.Heat_score,
-            Score = (int)(heatData.Heat_score * 100), // Normalize to 0-100 scale
-            Confidence = (int)(heatData.Confidence * 100), // Normalize to 0-100 scale
-            Explanation = heatData.Explanation,
-            ApolloContribution = heatData.Apollo_contribution,
-            IgnisContribution = heatData.Ignis_contribution
-        };
-    }
-
-    private PortfolioOptimizationResult MapToOptimizationResult(GaiaOptimizationResponse response)
-    {
-        var result = new PortfolioOptimizationResult
-        {
-            UserId = response.UserId,
-            Explanation = response.Explanation,
-            Confidence = response.Confidence,
-            Timestamp = DateTime.Parse(response.Timestamp),
-            Successful = response.Successful
-        };
-        
-        // Set portfolio metrics if available
-        if (response.PortfolioMetrics != null)
-        {
-            result.Metrics = new PortfolioMetrics
-            {
-                SharpeRatio = response.PortfolioMetrics.SharpeRatio,
-                MeanReturn = response.PortfolioMetrics.MeanReturn,
-                Variance = response.PortfolioMetrics.Variance,
-                ExpectedReturn = response.PortfolioMetrics.ExpectedReturn
-            };
-        }
-        
-        foreach (var recommendation in response.PortfolioRecommendations)
-        {
-            result.Recommendations.Add(new PortfolioRecommendation
-            {
-                Symbol = recommendation.Symbol,
-                Action = recommendation.Action,
-                CurrentQuantity = recommendation.CurrentQuantity,
-                TargetQuantity = recommendation.TargetQuantity,
-                CurrentWeight = recommendation.CurrentWeight,
-                TargetWeight = recommendation.TargetWeight,
-                Explanation = recommendation.Explanation
-            });
-        }
-        
-        return result;
-    }
-
-    #endregion
-
-    #region Response Models
-    
-    private class GaiaOptimizationResponse
-    {
-        public string UserId { get; set; } = string.Empty;
-        public List<GaiaRecommendation> PortfolioRecommendations { get; set; } = new();
-        public string Explanation { get; set; } = string.Empty;
-        public double Confidence { get; set; }
-        public string Timestamp { get; set; } = string.Empty;
-        public bool Successful { get; set; } = true;
-        public GaiaPortfolioMetrics? PortfolioMetrics { get; set; }
-    }
-
-    private class GaiaRecommendation
-    {
-        public string Symbol { get; set; } = string.Empty;
-        public string Action { get; set; } = string.Empty;
-        public decimal CurrentQuantity { get; set; }
-        public decimal TargetQuantity { get; set; }
-        public double CurrentWeight { get; set; }
-        public double TargetWeight { get; set; }
-        public string Explanation { get; set; } = string.Empty;
-    }
-    
-    private class GaiaPortfolioMetrics
-    {
-        public double SharpeRatio { get; set; }
-        public double MeanReturn { get; set; }
-        public double Variance { get; set; }
-        public double ExpectedReturn { get; set; }
-    }
-    
-    #endregion
 } 

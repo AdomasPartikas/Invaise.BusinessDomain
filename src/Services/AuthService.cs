@@ -13,30 +13,14 @@ namespace Invaise.BusinessDomain.API.Services;
 /// <summary>
 /// Service for handling user authentication and authorization.
 /// </summary>
-public class AuthService : IAuthService
-{
-    private readonly IDatabaseService _dbService;
-    private readonly IConfiguration _configuration;
-    private readonly IMapper _mapper;
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthService"/> class.
-    /// </summary>
-    /// <param name="dbService">The database service.</param>
-    /// <param name="configuration">The application configuration.</param>
-    /// <param name="mapper">The AutoMapper instance.</param>
-    public AuthService(IDatabaseService dbService, IConfiguration configuration, IMapper mapper)
-    {
-        _dbService = dbService;
-        _configuration = configuration;
-        _mapper = mapper;
-    }
-    
+public class AuthService(IDatabaseService dbService, IConfiguration configuration, IMapper mapper) : IAuthService
+{    
     /// <inheritdoc />
     public async Task<AuthResponse> RegisterAsync(RegisterModel registration)
     {
         // Check if user already exists
-        var existingUser = await _dbService.GetUserByEmailAsync(registration.Email);
+        var existingUser = await dbService.GetUserByEmailAsync(registration.Email);
+
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
@@ -53,13 +37,13 @@ public class AuthService : IAuthService
         };
         
         // Save to database
-        var createdUser = await _dbService.CreateUserAsync(user);
+        var createdUser = await dbService.CreateUserAsync(user);
         
         // Generate JWT token
         var (token, expiresAt) = GenerateJwtToken(createdUser);
         
         // Map user to DTO
-        var userDto = MapUserToDto(createdUser);
+        var userDto = mapper.Map<UserDto>(user);
         
         // Return authentication response
         return new AuthResponse
@@ -74,7 +58,8 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> LoginAsync(LoginModel login)
     {
         // Find user by email
-        var user = await _dbService.GetUserByEmailAsync(login.Email);
+        var user = await dbService.GetUserByEmailAsync(login.Email);
+
         if (user == null)
         {
             throw new InvalidOperationException("Invalid email or password");
@@ -88,13 +73,13 @@ public class AuthService : IAuthService
         
         // Update last login timestamp
         user.LastLoginAt = DateTime.UtcNow;
-        await _dbService.UpdateUserAsync(user);
+        await dbService.UpdateUserAsync(user);
         
         // Generate JWT token
         var (token, expiresAt) = GenerateJwtToken(user);
         
         // Map user to DTO
-        var userDto = MapUserToDto(user);
+        var userDto = mapper.Map<UserDto>(user);
         
         // Return authentication response
         return new AuthResponse
@@ -104,14 +89,72 @@ public class AuthService : IAuthService
             User = userDto
         };
     }
+
+    public async Task<AuthResponse> ServiceLoginAsync(ServiceLoginModel model)
+    {
+        // Validate the request
+        if (string.IsNullOrEmpty(model.Id) || string.IsNullOrEmpty(model.Key))
+            throw new InvalidOperationException("Invalid service account credentials");
+
+        // Get the service account
+        var serviceAccount = await dbService.GetServiceAccountAsync(model.Id);
+
+        if (serviceAccount == null)
+            throw new InvalidOperationException("Service account not found");
+
+        // Validate the key
+        if (!ValidatePassword(model.Key, serviceAccount.Key))
+            throw new InvalidOperationException("Invalid service account credentials");
+        
+        // Generate JWT token
+        var (token, expiresAt) = GenerateJwtToken(serviceAccount);
+        
+        // Map as UserDto
+        var serviceDto = mapper.Map<UserDto>(serviceAccount);
+        
+        // Return authentication response
+        return new AuthResponse
+        {
+            Token = token,
+            ExpiresAt = expiresAt,
+            User = serviceDto
+        };
+    }
+
+    public async Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions)
+    {        
+        // Create new service account
+        var serviceAccountDto = new ServiceAccountDto
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = name,
+            KeyUnhashed = GenerateSecureKey(),
+            Role = "Service",
+            Permissions = permissions
+        };
+
+        var serviceAccount = new ServiceAccount
+        {
+            Id = serviceAccountDto.Id,
+            Name = serviceAccountDto.Name,
+            Key = HashPassword(serviceAccountDto.KeyUnhashed),
+            Role = serviceAccountDto.Role,
+            Permissions = serviceAccountDto.Permissions
+        };
+        
+        // Save to database
+        await dbService.CreateServiceAccountAsync(serviceAccount);
+        
+        return serviceAccountDto;
+    }
     
     /// <inheritdoc />
     public (string token, DateTime expiresAt) GenerateJwtToken(User user)
     {
-        var jwtKey = _configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
-        var jwtIssuer = _configuration["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer not configured");
-        var jwtAudience = _configuration["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience not configured");
-        var jwtExpiryHours = int.Parse(_configuration["JWT:ExpiryInHours"] ?? "24");
+        var jwtKey = configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
+        var jwtIssuer = configuration["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer not configured");
+        var jwtAudience = configuration["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience not configured");
+        var jwtExpiryHours = int.Parse(configuration["JWT:ExpiryInHours"] ?? "24");
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -135,6 +178,39 @@ public class AuthService : IAuthService
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return (tokenHandler.WriteToken(token), expiresAt);
     }
+
+    public (string token, DateTime expiresAt) GenerateJwtToken(ServiceAccount serviceAccount)
+    {
+        var jwtKey = configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
+        var jwtIssuer = configuration["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer not configured");
+        var jwtAudience = configuration["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience not configured");
+        var jwtExpiryMinutes = int.Parse(configuration["JWT:ExpiryInMinutes"] ?? "30");
+        
+        var key = Encoding.ASCII.GetBytes(jwtKey);
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var expiresAt = DateTime.UtcNow.AddMinutes(jwtExpiryMinutes);
+        
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, serviceAccount.Id),
+                new Claim(ClaimTypes.Role, serviceAccount.Role)
+            }),
+            Expires = expiresAt,
+            Issuer = jwtIssuer,
+            Audience = jwtAudience,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        foreach (var permission in serviceAccount.Permissions)
+        {
+            tokenDescriptor.Subject.AddClaim(new Claim("permission", permission));
+        }
+        
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return (tokenHandler.WriteToken(token), expiresAt);
+    }
     
     /// <inheritdoc />
     public bool ValidatePassword(string password, string passwordHash)
@@ -147,41 +223,9 @@ public class AuthService : IAuthService
     {
         return BC.HashPassword(password);
     }
-    
-    /// <inheritdoc />
-    public UserDto MapUserToDto(User user)
+
+    public string GenerateSecureKey()
     {
-        if (_mapper != null)
-        {
-            return _mapper.Map<UserDto>(user);
-        }
-        
-        var dto = new UserDto
-        {
-            Id = user.Id,
-            Name = user.DisplayName,
-            Email = user.Email
-        };
-        
-        if (user.PersonalInfo != null)
-        {
-            dto.PersonalInfo = new UserPersonalInfoDto
-            {
-                Address = user.PersonalInfo.Address,
-                PhoneNumber = user.PersonalInfo.PhoneNumber,
-                DateOfBirth = user.PersonalInfo.DateOfBirth
-            };
-        }
-        
-        if (user.Preferences != null)
-        {
-            dto.Preferences = new UserPreferencesDto
-            {
-                RiskTolerance = user.Preferences.RiskTolerance,
-                InvestmentHorizon = user.Preferences.InvestmentHorizon
-            };
-        }
-        
-        return dto;
+        return Guid.NewGuid().ToString("N");
     }
 } 

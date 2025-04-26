@@ -15,13 +15,12 @@ public class PortfolioOptimizationController(IPortfolioOptimizationService portf
     /// Optimizes a user's portfolio based on predictions from Gaia
     /// </summary>
     /// <param name="portfolioId">Optional portfolio ID (uses default portfolio if not specified)</param>
-    /// <param name="riskTolerance">Optional risk tolerance factor (0-1)</param>
     /// <returns>Portfolio optimization results</returns>
     [HttpGet("optimize")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PortfolioOptimizationResult))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> OptimizePortfolio([FromQuery] string? portfolioId = null)
+    public async Task<IActionResult> OptimizePortfolio([FromQuery] string portfolioId)
     {
         try
         {
@@ -54,7 +53,7 @@ public class PortfolioOptimizationController(IPortfolioOptimizationService portf
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<PortfolioOptimizationResult>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetOptimizationHistory(
-        [FromQuery] string? portfolioId = null, 
+        [FromQuery] string portfolioId, 
         [FromQuery] DateTime? startDate = null, 
         [FromQuery] DateTime? endDate = null)
     {
@@ -77,7 +76,6 @@ public class PortfolioOptimizationController(IPortfolioOptimizationService portf
     /// Applies optimization recommendations to a portfolio
     /// </summary>
     /// <param name="optimizationId">The optimization ID to apply</param>
-    /// <param name="portfolioId">The portfolio ID</param>
     /// <returns>Success status</returns>
     [HttpPost("apply/{optimizationId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]

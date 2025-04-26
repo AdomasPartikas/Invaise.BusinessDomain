@@ -11,7 +11,9 @@ namespace Invaise.BusinessDomain.API.Attributes;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 {
+
     private readonly string[] _roles;
+    private readonly string[] _requiredPermissions;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthorizeAttribute"/> class.
@@ -20,6 +22,24 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
     public AuthorizeAttribute(params string[] roles)
     {
         _roles = roles;
+        _requiredPermissions = [];
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthorizeAttribute"/> class with specific permissions.
+    /// </summary>
+    /// <param name="roles">Optional roles that are authorized to access the resource.</param>
+    /// <param name="permissions">Required permissions to access the resource.</param>
+    public AuthorizeAttribute(string[] roles, string[] permissions)
+    {
+        _roles = roles;
+        _requiredPermissions = permissions;
+    }
+    
+    // Additional constructor for permission-only authorization
+    public static AuthorizeAttribute WithPermissions(params string[] permissions)
+    {
+        return new AuthorizeAttribute([], permissions);
     }
     
     /// <summary>
@@ -32,10 +52,12 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
         var allowAnonymous = context.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
         if (allowAnonymous)
             return;
+
+        var user = (User?)context.HttpContext.Items["User"];
+        var serviceAccount = (ServiceAccount?)context.HttpContext.Items["ServiceAccount"];
             
         // Get user from context
-        var user = (User?)context.HttpContext.Items["User"];
-        if (user == null)
+        if (user == null && serviceAccount == null)
         {
             // Not logged in
             context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
@@ -43,10 +65,42 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
         }
         
         // Check role if specified
-        if (_roles.Any() && !_roles.Contains(user.Role))
+        if (_roles.Length > 0)
         {
-            // Role not authorized
-            context.Result = new JsonResult(new { message = "Forbidden" }) { StatusCode = StatusCodes.Status403Forbidden };
+            bool authorized = false;
+            
+            if (user != null && _roles.Contains(user.Role))
+            {
+                authorized = true;
+            }
+            
+            if (serviceAccount != null && _roles.Contains(serviceAccount.Role))
+            {
+                authorized = true;
+            }
+            
+            if (!authorized)
+            {
+                // Role not authorized
+                context.Result = new JsonResult(new { message = "Forbidden" }) { StatusCode = StatusCodes.Status403Forbidden };
+                return;
+            }
         }
+
+        // Check permissions if specified
+        if (_requiredPermissions.Length > 0 && serviceAccount != null)
+        {
+            if (!_requiredPermissions.All(p => serviceAccount.Permissions.Contains(p)))
+            {
+                // Service account doesn't have required permissions
+                context.Result = new JsonResult(new { message = "Forbidden - Missing required permissions" }) 
+                { 
+                    StatusCode = StatusCodes.Status403Forbidden 
+                };
+                return;
+            }
+        }
+        
+        // Authorization successful
     }
 } 

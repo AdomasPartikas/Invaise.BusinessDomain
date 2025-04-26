@@ -249,6 +249,13 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
             .Include(p => p.Transactions)
             .FirstOrDefaultAsync(p => p.Id == portfolioId);
     }
+
+    public async Task<Portfolio?> GetPortfolioByIdWithPortfolioStocksAsync(string portfolioId)
+    {
+        return await context.Portfolios
+            .Include(p => p.PortfolioStocks)
+            .FirstOrDefaultAsync(p => p.Id == portfolioId);
+    }
     
     public async Task<Portfolio> CreatePortfolioAsync(Portfolio portfolio)
     {
@@ -396,5 +403,35 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         context.Companies.Remove(company);
         await context.SaveChangesAsync();
         return true;
+    }
+
+    // Service account operations
+
+    public async Task CreateServiceAccountAsync(ServiceAccount serviceAccount)
+    {
+        context.ServiceAccounts.Add(serviceAccount);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task<ServiceAccount?> GetServiceAccountAsync(string id)
+    {
+        return await context.ServiceAccounts
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<ServiceAccount> UpdateServiceAccountAsync(string id, ServiceAccount account)
+    {
+        var existingAccount = await context.ServiceAccounts.FindAsync(id);
+
+        if (existingAccount == null)
+            throw new KeyNotFoundException($"Service account with ID {id} not found.");
+
+        existingAccount.Name = account.Name;
+        existingAccount.Permissions = account.Permissions;
+        existingAccount.LastAuthenticated = DateTime.UtcNow;
+
+        context.ServiceAccounts.Update(existingAccount);
+        await context.SaveChangesAsync();
+        return existingAccount;
     }
 }

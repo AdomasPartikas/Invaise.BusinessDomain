@@ -8,22 +8,8 @@ namespace Invaise.BusinessDomain.API.Middleware;
 /// <summary>
 /// Middleware for handling JWT token authentication.
 /// </summary>
-public class JwtMiddleware
+public class JwtMiddleware(RequestDelegate next, IConfiguration configuration)
 {
-    private readonly RequestDelegate _next;
-    private readonly IConfiguration _configuration;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="JwtMiddleware"/> class.
-    /// </summary>
-    /// <param name="next">The next middleware delegate.</param>
-    /// <param name="configuration">The application configuration.</param>
-    public JwtMiddleware(RequestDelegate next, IConfiguration configuration)
-    {
-        _next = next;
-        _configuration = configuration;
-    }
-
     /// <summary>
     /// Invokes the middleware.
     /// </summary>
@@ -36,16 +22,16 @@ public class JwtMiddleware
         if (token != null)
             await AttachUserToContext(context, dbService, token);
 
-        await _next(context);
+        await next(context);
     }
 
     private async Task AttachUserToContext(HttpContext context, IDatabaseService dbService, string token)
     {
         try
         {
-            var jwtKey = _configuration["JWT:Key"];
-            var jwtIssuer = _configuration["JWT:Issuer"];
-            var jwtAudience = _configuration["JWT:Audience"];
+            var jwtKey = configuration["JWT:Key"];
+            var jwtIssuer = configuration["JWT:Issuer"];
+            var jwtAudience = configuration["JWT:Audience"];
             
             if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
                 return;
@@ -65,10 +51,22 @@ public class JwtMiddleware
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
-            var userId = jwtToken.Claims.First(x => x.Type == "nameid").Value;
 
-            // Attach user to context
-            context.Items["User"] = await dbService.GetUserByIdAsync(userId);
+            var accountType = jwtToken.Claims.FirstOrDefault(x => x.Type == "role")?.Value;
+        
+            if (accountType == "Service")
+            {
+                // This is a service account
+                var serviceAccountId = jwtToken.Claims.First(x => x.Type == "nameid").Value;
+
+                context.Items["ServiceAccount"] = await dbService.GetServiceAccountAsync(serviceAccountId);
+            }
+            else
+            {
+                // This is a user account (existing code)
+                var userId = jwtToken.Claims.First(x => x.Type == "nameid").Value;
+                context.Items["User"] = await dbService.GetUserByIdAsync(userId);
+            }
         }
         catch
         {

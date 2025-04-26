@@ -13,6 +13,12 @@ public class RegisterModel
     public string Password { get; set; } = string.Empty;
 }
 
+public class ServiceLoginModel
+{
+    public string Id { get; set; } = string.Empty;
+    public string Key { get; set; } = string.Empty;
+}
+
 public class UserPersonalInfoModel
 {
     public string? Address { get; set; }
@@ -34,6 +40,21 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public UserPersonalInfoDto? PersonalInfo { get; set; }
     public UserPreferencesDto? Preferences { get; set; }
+}
+
+public class CreateServiceAccountDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string[] Permissions { get; set; } = [];
+}
+
+public class ServiceAccountDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string KeyUnhashed { get; set; } = string.Empty;
+    public string Role { get; set; } = "Service";
+    public string[] Permissions { get; set; } = Array.Empty<string>();
 }
 
 public class UserPersonalInfoDto

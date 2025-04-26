@@ -24,26 +24,16 @@ public interface IGaiaService
     /// Gets a combined heat prediction from Gaia for a given symbol
     /// </summary>
     /// <param name="symbol">The stock symbol</param>
-    /// <param name="userId">Optional user ID for personalized predictions</param>
+    /// <param name="portfolioId">PortfolioId for extracting users portfolio settings</param>
     /// <returns>A Heat prediction</returns>
-    Task<Heat?> GetHeatPredictionAsync(string symbol, string? userId = null);
-    
-    /// <summary>
-    /// Gets combined heat predictions from Gaia for multiple symbols
-    /// </summary>
-    /// <param name="symbols">List of stock symbols</param>
-    /// <param name="userId">Optional user ID for personalized predictions</param>
-    /// <returns>Dictionary of symbol to heat prediction</returns>
-    Task<Dictionary<string, Heat>> GetHeatPredictionsAsync(IEnumerable<string> symbols, string? userId = null);
+    Task<(Heat, DateTime, double)?> GetHeatPredictionAsync(string symbol, string portfolioId);
     
     /// <summary>
     /// Optimizes a portfolio based on Gaia's predictions
     /// </summary>
-    /// <param name="userId">The user ID</param>
-    /// <param name="symbols">The symbols in the portfolio</param>
-    /// <param name="riskTolerance">Optional risk tolerance factor</param>
+    /// <param name="portfolioId">The portfolio that's being optimized</param>
     /// <returns>Portfolio optimization recommendations</returns>
-    Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, IEnumerable<string> symbols);
+    Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string portfolioId);
     
     /// <summary>
     /// Adjusts the weights of Apollo and Ignis models in the Gaia ensemble

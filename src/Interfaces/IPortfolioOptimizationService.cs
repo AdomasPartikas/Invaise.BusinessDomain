@@ -11,10 +11,9 @@ public interface IPortfolioOptimizationService
     /// Optimizes a user's portfolio based on predictions from Gaia
     /// </summary>
     /// <param name="userId">The user ID</param>
-    /// <param name="portfolioId">Optional portfolio ID (uses default portfolio if not specified)</param>
-    /// <param name="riskTolerance">Optional risk tolerance factor</param>
+    /// <param name="portfolioId">Portfolio ID to be optimized</param>
     /// <returns>Portfolio optimization results</returns>
-    Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, string? portfolioId = null);
+    Task<PortfolioOptimizationResult> OptimizePortfolioAsync(string userId, string portfolioId);
     
     /// <summary>
     /// Gets the optimization history for a user's portfolio
