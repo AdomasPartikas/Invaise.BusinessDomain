@@ -4,6 +4,7 @@ using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invaise.BusinessDomain.API.Migrations
 {
     [DbContext(typeof(InvaiseDbContext))]
-    partial class InvaiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250427130318_AddTransactionIdsToOptimizations")]
+    partial class AddTransactionIdsToOptimizations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,18 +381,6 @@ namespace Invaise.BusinessDomain.API.Migrations
                     b.Property<string>("PortfolioId")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
-
-                    b.Property<double>("ProjectedExpectedReturn")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedMeanReturn")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedSharpeRatio")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedVariance")
-                        .HasColumnType("double");
 
                     b.Property<double?>("RiskTolerance")
                         .HasColumnType("double");

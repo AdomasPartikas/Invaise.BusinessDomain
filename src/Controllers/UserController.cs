@@ -44,6 +44,24 @@ public class UserController(IDatabaseService dbService, IMapper mapper) : Contro
             
         return Ok(mapper.Map<UserDto>(user));
     }
+
+    /// <summary>
+    /// Checks if the current user is an admin.
+    /// /// </summary>
+    /// <returns>True if the user is an admin, otherwise false.</returns>
+    [HttpGet("is-admin")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> IsUserAdmin()
+    {
+        var currentUser = (User)HttpContext.Items["User"]!;
+        
+        // Check if the user is an admin
+        if (currentUser.Role != "Admin")
+            return Forbid();
+        
+        return Ok(new { message = "User is an admin" });
+    }
     
     /// <summary>
     /// Updates a user's personal information.

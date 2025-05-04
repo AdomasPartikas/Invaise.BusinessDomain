@@ -1,10 +1,13 @@
 using Invaise.BusinessDomain.API.Entities;
+using Hangfire;
 
 namespace Invaise.BusinessDomain.API.Interfaces;
 
 /// <summary>
 /// Interface for gathering and managing predictions from AI models
 /// </summary>
+[DisableConcurrentExecution(timeoutInSeconds: 0)]
+[AutomaticRetry(Attempts = 0, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
 public interface IModelPredictionService
 {
 

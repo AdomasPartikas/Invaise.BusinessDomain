@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Models;
 
@@ -37,6 +38,11 @@ public class PortfolioOptimizationResult
     /// Timestamp when the optimization was performed
     /// </summary>
     public DateTime Timestamp { get; set; }
+    
+    /// <summary>
+    /// Status of the optimization
+    /// </summary>
+    public PortfolioOptimizationStatus Status { get; set; } = PortfolioOptimizationStatus.Created;
     
     /// <summary>
     /// Indicates if the operation was successful
@@ -78,6 +84,11 @@ public class PortfolioMetrics
     /// Expected return based on CAPM
     /// </summary>
     public double ExpectedReturn { get; set; }
+
+    public double ProjectedSharpeRatio { get; set; }
+    public double ProjectedMeanReturn { get; set; }
+    public double ProjectedVariance { get; set; }
+    public double ProjectedExpectedReturn { get; set; }
 }
 
 /// <summary>

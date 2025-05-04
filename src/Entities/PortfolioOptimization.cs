@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Entities;
 
@@ -31,6 +32,12 @@ public class PortfolioOptimization
     /// </summary>
     [Required]
     public DateTime Timestamp { get; set; } = DateTime.UtcNow.ToLocalTime();
+    
+    /// <summary>
+    /// Gets or sets the status of the optimization
+    /// </summary>
+    [Required]
+    public PortfolioOptimizationStatus Status { get; set; } = PortfolioOptimizationStatus.Created;
     
     /// <summary>
     /// Gets or sets the explanation of the optimization strategy
@@ -83,6 +90,11 @@ public class PortfolioOptimization
     /// Gets or sets the expected return based on CAPM
     /// </summary>
     public double ExpectedReturn { get; set; }
+
+    public double ProjectedSharpeRatio { get; set; }
+    public double ProjectedMeanReturn { get; set; }
+    public double ProjectedVariance { get; set; }
+    public double ProjectedExpectedReturn { get; set; }
     
     /// <summary>
     /// Gets or sets the optimization recommendations
@@ -94,4 +106,9 @@ public class PortfolioOptimization
     /// </summary>
     [ForeignKey("PortfolioId")]
     public virtual Portfolio Portfolio { get; set; } = null!;
+
+    /// <summary>
+    /// Transaction IDs associated with this optimization
+    /// </summary>
+    public List<string> TransactionIds { get; set; } = new();
 } 

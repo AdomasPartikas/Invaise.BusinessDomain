@@ -15,6 +15,7 @@ public class ModelPredictionService(
         IApolloService apolloService,
         IIgnisService ignisService,
         IGaiaService gaiaService,
+        IPortfolioOptimizationService portfolioOptimizationService,
         Serilog.ILogger logger) : IModelPredictionService
 {
     // Using constants from ModelConstants
@@ -126,6 +127,8 @@ public class ModelPredictionService(
             if (portfolio == null) return result;
             
             var symbols = portfolio.PortfolioStocks.Select(s => s.Symbol).ToList();
+
+            await portfolioOptimizationService.CancelExistingOptimizationsForSymbolsAsync(symbols);
             
             foreach (var symbol in symbols)
             {

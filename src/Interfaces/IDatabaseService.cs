@@ -228,4 +228,7 @@ public interface IDatabaseService
     Task<ServiceAccount?> GetServiceAccountAsync(string id);
     Task CreateServiceAccountAsync(ServiceAccount serviceAccount);
     Task<ServiceAccount> UpdateServiceAccountAsync(string id, ServiceAccount account);
+    Task<Transaction?> GetTransactionByIdAsync(string id);
+    Task CancelTransactionAsync(string id);
+    Task<IEnumerable<Log>> GetLatestLogsAsync(int count);
 }

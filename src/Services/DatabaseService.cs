@@ -4,6 +4,7 @@ using Invaise.BusinessDomain.API.Interfaces;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Models;
 using Microsoft.EntityFrameworkCore;
+using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Services;
 
@@ -433,5 +434,37 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         context.ServiceAccounts.Update(existingAccount);
         await context.SaveChangesAsync();
         return existingAccount;
+    }
+
+    // Transaction operations
+
+    public async Task<Transaction?> GetTransactionByIdAsync(string id)
+    {
+        return await context.Transactions
+            .Include(t => t.Portfolio)
+            .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+    public async Task CancelTransactionAsync(string id)
+    {
+        var transaction = await context.Transactions.FindAsync(id);
+
+        if (transaction == null)
+            throw new KeyNotFoundException($"Transaction with ID {id} not found.");
+
+        transaction.Status = TransactionStatus.Canceled;
+
+        context.Transactions.Update(transaction);
+        await context.SaveChangesAsync();
+    }
+
+    // Log operations
+
+    public async Task<IEnumerable<Log>> GetLatestLogsAsync(int count)
+    {
+        return await context.LogEvents
+            .OrderByDescending(l => l.TimeStamp)
+            .Take(count)
+            .ToListAsync();
     }
 }

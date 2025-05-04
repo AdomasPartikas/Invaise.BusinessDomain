@@ -57,6 +57,29 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Authenticates a user.
+    /// </summary>
+    /// <param name="model">The login credentials.</param>
+    /// <returns>The authentication response with token and user information.</returns>
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshModel model)
+    {
+        try
+        {
+            var response = await authService.RefreshToken(model);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "An error occurred during login" });
+        }
+    }
+
     [HttpPost("service/login")]
     [AllowAnonymous]
     public async Task<IActionResult> ServiceLogin([FromBody] ServiceLoginModel model)

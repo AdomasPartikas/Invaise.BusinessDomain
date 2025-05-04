@@ -22,6 +22,8 @@ public interface IAuthService
     /// <returns>The authentication response containing token and user information.</returns>
     Task<AuthResponse> LoginAsync(LoginModel login);
 
+    Task<AuthResponse> RefreshToken(RefreshModel model);
+
     Task<AuthResponse> ServiceLoginAsync(ServiceLoginModel model);
     Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions);
     

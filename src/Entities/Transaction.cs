@@ -36,6 +36,9 @@ public class Transaction
     [Required]
     public required AvailableTransactionTriggers TriggeredBy { get; set; } = AvailableTransactionTriggers.System;
 
+    [Required]
+    public TransactionStatus Status { get; set; } = TransactionStatus.OnHold;
+
     public virtual User User { get; set; } = null!;
     public virtual Portfolio Portfolio { get; set; } = null!;
 }

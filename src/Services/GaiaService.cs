@@ -35,7 +35,6 @@ public class GaiaService(
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Error checking Gaia health status");
             return false;
         }
     }

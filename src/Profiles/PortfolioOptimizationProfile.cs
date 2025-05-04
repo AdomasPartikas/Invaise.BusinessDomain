@@ -50,6 +50,10 @@ public class PortfolioOptimizationProfile : Profile
             .ForMember(dest => dest.MeanReturn, opt => opt.MapFrom(src => src.Metrics.MeanReturn))
             .ForMember(dest => dest.Variance, opt => opt.MapFrom(src => src.Metrics.Variance))
             .ForMember(dest => dest.ExpectedReturn, opt => opt.MapFrom(src => src.Metrics.ExpectedReturn))
+            .ForMember(dest => dest.ProjectedSharpeRatio, opt => opt.MapFrom(src => src.Metrics.ProjectedSharpeRatio))
+            .ForMember(dest => dest.ProjectedMeanReturn, opt => opt.MapFrom(src => src.Metrics.ProjectedMeanReturn))
+            .ForMember(dest => dest.ProjectedVariance, opt => opt.MapFrom(src => src.Metrics.ProjectedVariance))
+            .ForMember(dest => dest.ProjectedExpectedReturn, opt => opt.MapFrom(src => src.Metrics.ProjectedExpectedReturn))
             .ForMember(dest => dest.Recommendations, opt => opt.MapFrom(src => src.Recommendations))
             .ForMember(dest => dest.AppliedDate, opt => opt.Ignore()) // AppliedDate should be set explicitly
             .ForMember(dest => dest.RiskTolerance, opt => opt.Ignore()) // RiskTolerance should be set explicitly
@@ -78,7 +82,11 @@ public class PortfolioOptimizationProfile : Profile
                 SharpeRatio = src.SharpeRatio,
                 MeanReturn = src.MeanReturn,
                 Variance = src.Variance,
-                ExpectedReturn = src.ExpectedReturn
+                ExpectedReturn = src.ExpectedReturn,
+                ProjectedSharpeRatio = src.ProjectedSharpeRatio,
+                ProjectedMeanReturn = src.ProjectedMeanReturn,
+                ProjectedVariance = src.ProjectedVariance,
+                ProjectedExpectedReturn = src.ProjectedExpectedReturn
             }))
             .ForMember(dest => dest.Recommendations, opt => opt.MapFrom(src => src.Recommendations))
             .ForMember(dest => dest.Successful, opt => opt.MapFrom(src => true))

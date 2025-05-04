@@ -4,6 +4,7 @@ using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invaise.BusinessDomain.API.Migrations
 {
     [DbContext(typeof(InvaiseDbContext))]
-    partial class InvaiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250426232711_UpdateToTransactionService")]
+    partial class UpdateToTransactionService
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,33 +382,14 @@ namespace Invaise.BusinessDomain.API.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<double>("ProjectedExpectedReturn")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedMeanReturn")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedSharpeRatio")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ProjectedVariance")
-                        .HasColumnType("double");
-
                     b.Property<double?>("RiskTolerance")
                         .HasColumnType("double");
 
                     b.Property<double>("SharpeRatio")
                         .HasColumnType("double");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("TransactionIds")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()

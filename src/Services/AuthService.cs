@@ -121,6 +121,41 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         };
     }
 
+    public async Task<AuthResponse> RefreshToken(RefreshModel model)
+    {
+        // Validate the request
+        if (string.IsNullOrEmpty(model.Token))
+            throw new InvalidOperationException("Invalid token");
+
+        // Validate the token and get user ID
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(model.Token);
+        var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+            throw new InvalidOperationException("Invalid token");
+
+        // Get the user from the database
+        var user = await dbService.GetUserByIdAsync(userId);
+
+        if (user == null)
+            throw new InvalidOperationException("User not found");
+
+        // Generate a new JWT token
+        var (token, expiresAt) = GenerateJwtToken(user);
+        
+        // Map user to DTO
+        var userDto = mapper.Map<UserDto>(user);
+        
+        // Return authentication response
+        return new AuthResponse
+        {
+            Token = token,
+            ExpiresAt = expiresAt,
+            User = userDto
+        };
+    }
+
     public async Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions)
     {        
         // Create new service account
@@ -154,11 +189,11 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         var jwtKey = configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
         var jwtIssuer = configuration["JWT:Issuer"] ?? throw new InvalidOperationException("JWT:Issuer not configured");
         var jwtAudience = configuration["JWT:Audience"] ?? throw new InvalidOperationException("JWT:Audience not configured");
-        var jwtExpiryHours = int.Parse(configuration["JWT:ExpiryInHours"] ?? "24");
+        var jwtExpiryMinutes = int.Parse(configuration["JWT:ExpiryInMinutes"] ?? "30");
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
         var tokenHandler = new JwtSecurityTokenHandler();
-        var expiresAt = DateTime.UtcNow.ToLocalTime().AddHours(jwtExpiryHours);
+        var expiresAt = DateTime.UtcNow.ToLocalTime().AddMinutes(jwtExpiryMinutes);
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {

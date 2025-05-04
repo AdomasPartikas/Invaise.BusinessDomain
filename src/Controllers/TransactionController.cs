@@ -94,4 +94,28 @@ public class TransactionController(IDatabaseService dbService) : ControllerBase
         var createdTransaction = await dbService.CreateTransactionAsync(transaction);
         return CreatedAtAction(nameof(GetUserTransactions), createdTransaction);
     }
+
+    /// <summary>
+    /// Cancels a transaction.
+    /// /// </summary>
+    /// <param name="transactionId">The transaction ID.</param>
+    [HttpDelete("{transactionId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> CancelTransaction(string transactionId)
+    {
+        var currentUser = (User)HttpContext.Items["User"]!;
+        
+        // Check if the transaction exists and belongs to the user
+        var transaction = await dbService.GetTransactionByIdAsync(transactionId);
+        
+        if (transaction == null)
+            return NotFound(new { message = "Transaction not found" });
+            
+        if (transaction.UserId != currentUser.Id && currentUser.Role != "Admin")
+            return Forbid();
+            
+        await dbService.CancelTransactionAsync(transactionId);
+        
+        return NoContent();
+    }
 } 

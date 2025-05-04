@@ -6,6 +6,11 @@ public class LoginModel
     public string Password { get; set; } = string.Empty;
 }
 
+public class RefreshModel
+{
+    public string Token { get; set; } = string.Empty;
+}
+
 public class RegisterModel
 {
     public string Name { get; set; } = string.Empty;

@@ -255,6 +255,7 @@ try
     builder.Services.AddScoped<IMarketDataService, MarketDataService>();
     builder.Services.AddScoped<IDatabaseService, DatabaseService>();
     builder.Services.AddScoped<IPortfolioService, PortfolioService>();
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
 
     // Register AI model services
     builder.Services.Configure<AIModelSettings>(builder.Configuration.GetSection("AIModels"));
@@ -316,10 +317,10 @@ try
         service => service.ImportIntradayMarketDataAsync(),
         "*/5 * * * *");
 
-    // RecurringJob.AddOrUpdate<IModelHealthService>(
-    //     "check-model-health",
-    //     service => service.CheckAllModelsHealthAsync(),
-    //     "*/1 * * * *");
+    RecurringJob.AddOrUpdate<IModelHealthService>(
+        "check-model-health",
+        service => service.CheckAllModelsHealthAsync(),
+        "*/1 * * * *");
 
     // RecurringJob.AddOrUpdate<IModelPerformanceService>(
     //     "check-model-training-status",
@@ -336,15 +337,21 @@ try
         service => service.RefreshAllPortfoliosAsync(),
         "*/5 * * * *");
         
+    RecurringJob.AddOrUpdate<ITransactionService>(
+        "process-pending-transactions",
+        service => service.ProcessPendingTransactionsAsync(),
+        "*/3 * * * *");
+
+    RecurringJob.AddOrUpdate<IPortfolioOptimizationService>(
+        "ensure-inprogress-optimizations",
+        service => service.EnsureCompletionOfAllInProgressOptimizationsAsync(),
+        "*/3 * * * *");
+        
     // RecurringJob.AddOrUpdate<IModelPredictionService>(
     //     "update-predictions",
     //     service => service.RefreshAllPredictionsAsync(),
     //     "0 */1 * * *");
         
-    // RecurringJob.AddOrUpdate<IPerformanceService>(
-    //     "evaluate-model-performance",
-    //     service => service.EvaluateModelPerformanceAsync(0, DateTime.UtcNow.ToLocalTime().AddDays(-7), DateTime.UtcNow.ToLocalTime()),
-    //     "0 4 * * *");
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
