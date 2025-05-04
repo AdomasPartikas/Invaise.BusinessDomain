@@ -149,24 +149,62 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         return user;
     }
     
+    public async Task<IEnumerable<User>> GetAllUsersAsync(bool includeInactive = false)
+    {
+        var query = context.Users
+            .Include(u => u.Preferences)
+            .Include(u => u.PersonalInfo)
+            .AsQueryable();
+            
+        if (!includeInactive)
+            query = query.Where(u => u.IsActive);
+            
+        return await query.ToListAsync();
+    }
+    
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         return await context.Users
-            .Include(u => u.PersonalInfo)
             .Include(u => u.Preferences)
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .Include(u => u.PersonalInfo)
+            .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
     }
     
-    public async Task<User?> GetUserByIdAsync(string id)
+    /// <summary>
+    /// Gets a user by their ID.
+    /// </summary>
+    /// <param name="id">The user ID to look for.</param>
+    /// <param name="includeInactive">Whether to include inactive users.</param>
+    /// <returns>The user if found, null otherwise.</returns>
+    public async Task<User?> GetUserByIdAsync(string id, bool includeInactive = false)
     {
-        return await context.Users
-            .Include(u => u.PersonalInfo)
+        var query = context.Users
             .Include(u => u.Preferences)
-            .FirstOrDefaultAsync(u => u.Id == id);
+            .Include(u => u.PersonalInfo)
+            .Include(u => u.Portfolios)
+            .AsQueryable();
+            
+        if (!includeInactive)
+            query = query.Where(u => u.IsActive);
+            
+        return await query.FirstOrDefaultAsync(u => u.Id == id);
     }
     
     public async Task<User> UpdateUserAsync(User user)
     {
+        user.UpdatedAt = DateTime.UtcNow.ToLocalTime();
+        context.Users.Update(user);
+        await context.SaveChangesAsync();
+        return user;
+    }
+    
+    public async Task<User> UpdateUserActiveStatusAsync(string userId, bool isActive)
+    {
+        var user = await context.Users.FindAsync(userId);
+        if (user == null)
+            throw new InvalidOperationException($"User with ID {userId} not found");
+            
+        user.IsActive = isActive;
         user.UpdatedAt = DateTime.UtcNow.ToLocalTime();
         context.Users.Update(user);
         await context.SaveChangesAsync();
@@ -233,6 +271,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     public async Task<IEnumerable<Portfolio>> GetAllPortfoliosAsync()
     {
         return await context.Portfolios
+            .Where(p => p.IsActive)
             .Include(p => p.User)
             .ToListAsync();
     }
@@ -240,7 +279,7 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     public async Task<IEnumerable<Portfolio>> GetUserPortfoliosAsync(string userId)
     {
         return await context.Portfolios
-            .Where(p => p.UserId == userId)
+            .Where(p => p.UserId == userId && p.IsActive)
             .ToListAsync();
     }
     
@@ -248,14 +287,14 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
     {
         return await context.Portfolios
             .Include(p => p.Transactions)
-            .FirstOrDefaultAsync(p => p.Id == portfolioId);
+            .FirstOrDefaultAsync(p => p.Id == portfolioId && p.IsActive);
     }
 
     public async Task<Portfolio?> GetPortfolioByIdWithPortfolioStocksAsync(string portfolioId)
     {
         return await context.Portfolios
             .Include(p => p.PortfolioStocks)
-            .FirstOrDefaultAsync(p => p.Id == portfolioId);
+            .FirstOrDefaultAsync(p => p.Id == portfolioId && p.IsActive);
     }
     
     public async Task<Portfolio> CreatePortfolioAsync(Portfolio portfolio)
@@ -281,7 +320,9 @@ public class DatabaseService(InvaiseDbContext context) : IDatabaseService
         if (portfolio == null)
             return false;
             
-        context.Portfolios.Remove(portfolio);
+        portfolio.IsActive = false;
+        portfolio.LastUpdated = DateTime.UtcNow.ToLocalTime();
+        context.Portfolios.Update(portfolio);
         await context.SaveChangesAsync();
         return true;
     }

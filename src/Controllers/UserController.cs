@@ -38,7 +38,7 @@ public class UserController(IDatabaseService dbService, IMapper mapper) : Contro
     [Authorize("Admin")]
     public async Task<IActionResult> GetUserById(string id)
     {
-        var user = await dbService.GetUserByIdAsync(id);
+        var user = await dbService.GetUserByIdAsync(id, includeInactive: true);
         if (user == null)
             return NotFound(new { message = "User not found" });
             
@@ -46,8 +46,46 @@ public class UserController(IDatabaseService dbService, IMapper mapper) : Contro
     }
 
     /// <summary>
+    /// Gets all users (admin only).
+    /// </summary>
+    /// <param name="includeInactive">Whether to include inactive users.</param>
+    /// <returns>All users.</returns>
+    [HttpGet]
+    [Authorize("Admin")]
+    public async Task<IActionResult> GetAllUsers([FromQuery] bool includeInactive = false)
+    {
+        var users = await dbService.GetAllUsersAsync(includeInactive);
+        return Ok(users.Select(mapper.Map<UserDto>));
+    }
+    
+    /// <summary>
+    /// Updates a user's active status (admin only).
+    /// </summary>
+    /// <param name="id">The user ID.</param>
+    /// <param name="isActive">The new active status.</param>
+    /// <returns>The updated user.</returns>
+    [HttpPut("{id}/active-status")]
+    [Authorize("Admin")]
+    public async Task<IActionResult> UpdateUserActiveStatus(string id, [FromQuery] bool isActive)
+    {
+        try
+        {
+            var user = await dbService.UpdateUserActiveStatusAsync(id, isActive);
+            return Ok(mapper.Map<UserDto>(user));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "An error occurred while updating user status" });
+        }
+    }
+    
+    /// <summary>
     /// Checks if the current user is an admin.
-    /// /// </summary>
+    /// </summary>
     /// <returns>True if the user is an admin, otherwise false.</returns>
     [HttpGet("is-admin")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]

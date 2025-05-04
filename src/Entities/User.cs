@@ -59,6 +59,12 @@ public class User
     /// </summary>
     public DateTime? LastLoginAt { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the user account is active.
+    /// </summary>
+    [Required]
+    public bool IsActive { get; set; } = true;
+
 
     public UserPreferences? Preferences { get; set; }
     public UserPersonalInfo? PersonalInfo { get; set; }

@@ -89,6 +89,12 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
             throw new InvalidOperationException("Invalid email or password");
         }
         
+        // Check if user account is active
+        if (!user.IsActive)
+        {
+            throw new InvalidOperationException("This account is inactive");
+        }
+        
         // Validate password
         if (!ValidatePassword(login.Password, user.PasswordHash))
         {

@@ -23,6 +23,12 @@ public class Portfolio
 
     public DateTime? LastUpdated { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the portfolio is active.
+    /// </summary>
+    [Required]
+    public bool IsActive { get; set; } = true;
+
     // Navigation properties
     public virtual User User { get; set; } = null!;
     public virtual ICollection<PortfolioStock> PortfolioStocks { get; set; } = new List<PortfolioStock>();

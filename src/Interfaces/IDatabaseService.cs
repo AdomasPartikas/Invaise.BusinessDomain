@@ -46,6 +46,13 @@ public interface IDatabaseService
     Task<User> CreateUserAsync(User user);
 
     /// <summary>
+    /// Gets all users.
+    /// </summary>
+    /// <param name="includeInactive">Whether to include inactive users.</param>
+    /// <returns>A collection of users.</returns>
+    Task<IEnumerable<User>> GetAllUsersAsync(bool includeInactive = false);
+
+    /// <summary>
     /// Gets a user by their email address.
     /// </summary>
     /// <param name="email">The email address to look for.</param>
@@ -56,8 +63,9 @@ public interface IDatabaseService
     /// Gets a user by their ID.
     /// </summary>
     /// <param name="id">The user ID to look for.</param>
+    /// <param name="includeInactive">Whether to include inactive users.</param>
     /// <returns>The user if found, null otherwise.</returns>
-    Task<User?> GetUserByIdAsync(string id);
+    Task<User?> GetUserByIdAsync(string id, bool includeInactive = false);
 
     /// <summary>
     /// Updates a user's information.
@@ -65,6 +73,14 @@ public interface IDatabaseService
     /// <param name="user">The user entity with updated properties.</param>
     /// <returns>The updated user entity.</returns>
     Task<User> UpdateUserAsync(User user);
+
+    /// <summary>
+    /// Updates a user's active status.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="isActive">The new active status.</param>
+    /// <returns>The updated user entity.</returns>
+    Task<User> UpdateUserActiveStatusAsync(string userId, bool isActive);
 
     /// <summary>
     /// Updates a user's personal information.
