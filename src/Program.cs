@@ -23,6 +23,7 @@ using AutoMapper;
 using System.Configuration;
 using Invaise.BusinessDomain.API.Config;
 using Microsoft.Extensions.Configuration;
+using QuestPDF.Infrastructure;
 
 
 // Enable Serilog self-logging to see internal errors
@@ -290,6 +291,9 @@ try
     
     // Add a simple HttpClient for direct Gaia calls
     builder.Services.AddHttpClient();
+
+    // Add QuestPDF settings
+    QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
     var app = builder.Build();
 

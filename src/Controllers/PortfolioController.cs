@@ -12,7 +12,7 @@ namespace Invaise.BusinessDomain.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PortfolioController(IDatabaseService dbService) : ControllerBase
+public class PortfolioController(IDatabaseService dbService, IPortfolioService portfolioService) : ControllerBase
 {   
     /// <summary>
     /// Gets all portfolios for the current user.
@@ -138,5 +138,48 @@ public class PortfolioController(IDatabaseService dbService) : ControllerBase
             return StatusCode(500, new { message = "Failed to delete portfolio" });
             
         return Ok(new { message = "Portfolio deleted successfully" });
+    }
+    
+    /// <summary>
+    /// Generates a PDF report of portfolio performance for a specific date range.
+    /// </summary>
+    /// <param name="id">The portfolio ID.</param>
+    /// <param name="startDate">The start date for performance data.</param>
+    /// <param name="endDate">The end date for performance data.</param>
+    /// <returns>The generated PDF file.</returns>
+    [HttpGet("{id}/performance-report")]
+    public async Task<IActionResult> GeneratePortfolioPerformanceReport(string id, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    {
+        var currentUser = (User)HttpContext.Items["User"]!;
+        
+        // Check if portfolio exists
+        var portfolio = await dbService.GetPortfolioByIdAsync(id);
+        
+        if (portfolio == null)
+            return NotFound(new { message = "Portfolio not found" });
+            
+        // Ensure the user can only access their own portfolios
+        if (portfolio.UserId != currentUser.Id && currentUser.Role != "Admin")
+            return Forbid();
+        
+        try
+        {
+            // Generate the PDF report
+            var pdfBytes = await portfolioService.GeneratePortfolioPerformancePdfAsync(
+                currentUser.Id, 
+                id, 
+                startDate, 
+                endDate);
+            
+            // Return the PDF file
+            return File(
+                pdfBytes,
+                "application/pdf",
+                $"portfolio-performance-report-{id}-{startDate:yyyyMMdd}-{endDate:yyyyMMdd}.pdf");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Error generating PDF report: {ex.Message}" });
+        }
     }
 } 

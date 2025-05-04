@@ -4,6 +4,9 @@ using Invaise.BusinessDomain.API.Constants;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Context;
 using Microsoft.EntityFrameworkCore;
+using Invaise.BusinessDomain.API.Models;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace Invaise.BusinessDomain.API.Services;
 
@@ -163,6 +166,58 @@ public class PortfolioService(IDatabaseService dbService, InvaiseDbContext dbCon
         catch (Exception ex)
         {
             Debug.WriteLine($"Error saving EOD portfolio performance: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <inheritdoc/>
+    public async Task<byte[]> GeneratePortfolioPerformancePdfAsync(string userId, string portfolioId, DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            // Set QuestPDF license
+            QuestPDF.Settings.License = LicenseType.Community;
+            
+            // Get user with personal info
+            var user = await dbService.GetUserByIdAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User not found: {userId}");
+                
+            // Get portfolio with stocks
+            var portfolio = await dbService.GetPortfolioByIdWithPortfolioStocksAsync(portfolioId);
+            if (portfolio == null)
+                throw new ArgumentException($"Portfolio not found: {portfolioId}");
+                
+            // Get portfolio stocks
+            var portfolioStocks = await dbService.GetPortfolioStocksAsync(portfolioId);
+                
+            // Get performance data for the date range
+            var performanceData = await dbContext.PortfolioPerformances
+                .Where(pp => pp.PortfolioId == portfolioId && 
+                            pp.Date >= startDate.Date && 
+                            pp.Date <= endDate.Date)
+                .OrderBy(pp => pp.Date)
+                .ToListAsync();
+                
+            // Create the report model
+            var reportModel = new PortfolioPerformanceReportModel
+            {
+                User = user,
+                Portfolio = portfolio,
+                PortfolioStocks = portfolioStocks,
+                PerformanceData = performanceData,
+                StartDate = startDate,
+                EndDate = endDate,
+                GenerationDate = DateTime.UtcNow.ToLocalTime()
+            };
+            
+            // Generate the PDF
+            var document = new PortfolioPerformanceDocument(reportModel);
+            return document.GeneratePdf();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error generating portfolio performance PDF: {ex.Message}");
             throw;
         }
     }
