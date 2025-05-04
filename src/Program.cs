@@ -22,6 +22,7 @@ using Invaise.BusinessDomain.API.Middleware;
 using AutoMapper;
 using System.Configuration;
 using Invaise.BusinessDomain.API.Config;
+using Microsoft.Extensions.Configuration;
 
 
 // Enable Serilog self-logging to see internal errors
@@ -270,6 +271,9 @@ try
     builder.Services.AddScoped<IAIModelService, AIModelService>();
     builder.Services.AddScoped<IModelHealthService, ModelHealthService>();
     builder.Services.AddScoped<IModelPerformanceService, ModelPerformanceService>();
+    
+    // Register email service
+    builder.Services.AddScoped<IEmailService, EmailService>();
 
     builder.Services.AddHangfire(config =>
     {

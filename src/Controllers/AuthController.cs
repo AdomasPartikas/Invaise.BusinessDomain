@@ -98,4 +98,32 @@ public class AuthController(IAuthService authService) : ControllerBase
             return StatusCode(500, new { message = "An error occurred during service login" });
         }
     }
+    
+    /// <summary>
+    /// Handles forgot password requests by sending a temporary password to the user's email.
+    /// </summary>
+    /// <param name="model">The forgot password model containing the user's email.</param>
+    /// <returns>A success message or error.</returns>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+    {
+        try
+        {
+            var result = await authService.ForgotPasswordAsync(model.Email);
+            
+            if (result)
+            {
+                return Ok(new { message = "If your email exists in our system, a password reset email has been sent." });
+            }
+            else
+            {
+                return StatusCode(500, new { message = "An error occurred while processing your request." });
+            }
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "An error occurred while processing your request." });
+        }
+    }
 } 

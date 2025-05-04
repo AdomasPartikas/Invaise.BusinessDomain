@@ -15,7 +15,7 @@ namespace Invaise.BusinessDomain.API.Services;
 /// <summary>
 /// Service for handling user authentication and authorization.
 /// </summary>
-public class AuthService(IDatabaseService dbService, IConfiguration configuration, IMapper mapper) : IAuthService
+public class AuthService(IDatabaseService dbService, IConfiguration configuration, IMapper mapper, IEmailService emailService) : IAuthService
 {    
     // Secret salt for email hashing - this would ideally be in app settings
 
@@ -54,6 +54,17 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         // Map user to DTO - use original email for DTO
         var userDto = mapper.Map<UserDto>(user);
         userDto.Email = registration.Email; // Use original email for UI display
+
+        try
+        {
+            // Send registration confirmation email
+            await emailService.SendRegistrationConfirmationEmailAsync(registration.Email, registration.Name);
+        }
+        catch (Exception ex)
+        {
+            // Log error but continue - we don't want to fail registration if email fails
+            System.Console.WriteLine(ex.Message);
+        }
         
         // Return authentication response
         return new AuthResponse
@@ -301,5 +312,45 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
     public string GenerateSecureKey()
     {
         return Guid.NewGuid().ToString("N");
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ForgotPasswordAsync(string email)
+    {
+        try
+        {
+            // Hash the email for database lookup
+            string hashedEmail = HashEmail(email);
+            
+            // Find user by hashed email
+            var user = await dbService.GetUserByEmailAsync(hashedEmail);
+
+            if (user == null)
+            {
+                // User not found, but don't reveal this information
+                // For security reasons, we'll return true anyway
+                return true;
+            }
+            
+            // Generate a temporary password (using GUID for randomness)
+            string temporaryPassword = Guid.NewGuid().ToString("N").Substring(0, 12);
+            
+            // Update user's password with the hashed temporary password
+            user.PasswordHash = HashPassword(temporaryPassword);
+            
+            // Save the updated user to the database
+            await dbService.UpdateUserAsync(user);
+            
+            // Send email with the temporary password
+            await emailService.SendPasswordResetEmailAsync(email, user.DisplayName, temporaryPassword);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Log the error
+            System.Console.WriteLine($"Error in ForgotPasswordAsync: {ex.Message}");
+            return false;
+        }
     }
 } 

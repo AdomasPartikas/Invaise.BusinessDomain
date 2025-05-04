@@ -57,4 +57,11 @@ public interface IAuthService
     string HashEmail(string email);
 
     string GenerateSecureKey();
+
+    /// <summary>
+    /// Handles a forgot password request by generating a temporary password and sending it via email.
+    /// </summary>
+    /// <param name="email">The email of the user requesting a password reset.</param>
+    /// <returns>True if the password was reset successfully, false otherwise.</returns>
+    Task<bool> ForgotPasswordAsync(string email);
 } 
