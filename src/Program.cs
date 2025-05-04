@@ -351,6 +351,11 @@ try
         service => service.EnsureCompletionOfAllInProgressOptimizationsAsync(),
         "*/3 * * * *");
         
+    RecurringJob.AddOrUpdate<IPortfolioService>(
+        "save-eod-portfolio-performance",
+        service => service.SaveEodPortfolioPerformanceAsync(),
+        "0 0 * * *"); // Run daily at midnight
+        
     // RecurringJob.AddOrUpdate<IModelPredictionService>(
     //     "update-predictions",
     //     service => service.RefreshAllPredictionsAsync(),

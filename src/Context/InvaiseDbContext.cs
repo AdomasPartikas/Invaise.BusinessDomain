@@ -63,6 +63,11 @@ public class InvaiseDbContext : DbContext
     public DbSet<PortfolioOptimizationRecommendation> PortfolioOptimizationRecommendations { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the collection of portfolio performance records in the database.
+    /// </summary>
+    public DbSet<PortfolioPerformance> PortfolioPerformances { get; set; } = null!;
+
+    /// <summary>
     /// Configures the model for the database context.
     /// </summary>
     /// <param name="modelBuilder">The builder used to construct the model for the database context.</param>
@@ -141,5 +146,16 @@ public class InvaiseDbContext : DbContext
             .WithMany(o => o.Recommendations)
             .HasForeignKey(r => r.OptimizationId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure PortfolioPerformance relationship
+        modelBuilder.Entity<PortfolioPerformance>()
+            .HasOne(pp => pp.Portfolio)
+            .WithMany()
+            .HasForeignKey(pp => pp.PortfolioId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        modelBuilder.Entity<PortfolioPerformance>()
+            .HasIndex(pp => new { pp.PortfolioId, pp.Date })
+            .IsUnique();
     }
 }
