@@ -49,5 +49,12 @@ public interface IAuthService
     /// <returns>The hashed password.</returns>
     string HashPassword(string password);
 
+    /// <summary>
+    /// Hashes an email using a secure algorithm.
+    /// </summary>
+    /// <param name="email">The email to hash.</param>
+    /// <returns>The hashed email.</returns>
+    string HashEmail(string email);
+
     string GenerateSecureKey();
 } 

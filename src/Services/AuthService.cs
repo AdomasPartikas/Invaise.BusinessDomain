@@ -1,9 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Invaise.BusinessDomain.API.Entities;
 using Invaise.BusinessDomain.API.Interfaces;
 using Invaise.BusinessDomain.API.Models;
+using Invaise.BusinessDomain.API.Utils;
 using Microsoft.IdentityModel.Tokens;
 using BC = BCrypt.Net.BCrypt;
 using AutoMapper;
@@ -15,22 +17,29 @@ namespace Invaise.BusinessDomain.API.Services;
 /// </summary>
 public class AuthService(IDatabaseService dbService, IConfiguration configuration, IMapper mapper) : IAuthService
 {    
+    // Secret salt for email hashing - this would ideally be in app settings
+
+    readonly string emailSalt = configuration["JWT:EmailSalt"] ?? throw new InvalidOperationException("Email salt not configured");
+
     /// <inheritdoc />
     public async Task<AuthResponse> RegisterAsync(RegisterModel registration)
     {
-        // Check if user already exists
-        var existingUser = await dbService.GetUserByEmailAsync(registration.Email);
+        // Hash the email for storage and lookup
+        string hashedEmail = HashEmail(registration.Email);
+        
+        // Check if user with this email hash already exists
+        var existingUser = await dbService.GetUserByEmailAsync(hashedEmail);
 
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
         }
         
-        // Create new user
+        // Create new user with hashed email and password
         var user = new User
         {
             DisplayName = registration.Name,
-            Email = registration.Email,
+            Email = hashedEmail, // Store hashed email
             PasswordHash = HashPassword(registration.Password),
             Role = "User", // Default role for new users
             EmailVerified = false
@@ -42,8 +51,9 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         // Generate JWT token
         var (token, expiresAt) = GenerateJwtToken(createdUser);
         
-        // Map user to DTO
+        // Map user to DTO - use original email for DTO
         var userDto = mapper.Map<UserDto>(user);
+        userDto.Email = registration.Email; // Use original email for UI display
         
         // Return authentication response
         return new AuthResponse
@@ -57,8 +67,11 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
     /// <inheritdoc />
     public async Task<AuthResponse> LoginAsync(LoginModel login)
     {
-        // Find user by email
-        var user = await dbService.GetUserByEmailAsync(login.Email);
+        // Hash the provided email for lookup
+        string hashedEmail = HashEmail(login.Email);
+        
+        // Find user by hashed email
+        var user = await dbService.GetUserByEmailAsync(hashedEmail);
 
         if (user == null)
         {
@@ -78,8 +91,9 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         // Generate JWT token
         var (token, expiresAt) = GenerateJwtToken(user);
         
-        // Map user to DTO
+        // Map user to DTO - use original email for DTO
         var userDto = mapper.Map<UserDto>(user);
+        userDto.Email = login.Email; // Use original email for UI display
         
         // Return authentication response
         return new AuthResponse
@@ -195,6 +209,7 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         var tokenHandler = new JwtSecurityTokenHandler();
         var expiresAt = DateTime.UtcNow.ToLocalTime().AddMinutes(jwtExpiryMinutes);
         
+        // Note: The Email claim contains the hashed email
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -257,6 +272,30 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
     public string HashPassword(string password)
     {
         return BC.HashPassword(password);
+    }
+
+    /// <inheritdoc />
+    public string HashEmail(string email)
+    {        
+        // Normalize the email
+        string normalizedEmail = email.ToLower().Trim();
+        
+        // Create a deterministic hash using SHA-256
+        using (var sha256 = SHA256.Create())
+        {
+            // Combine email with salt
+            byte[] emailBytes = Encoding.UTF8.GetBytes(normalizedEmail + emailSalt);
+            byte[] hashBytes = sha256.ComputeHash(emailBytes);
+            
+            // Convert to hex string
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++)
+            {
+                builder.Append(hashBytes[i].ToString("x2"));
+            }
+            
+            return builder.ToString();
+        }
     }
 
     public string GenerateSecureKey()

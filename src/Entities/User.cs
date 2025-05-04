@@ -20,7 +20,7 @@ public class User
     public string Role { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the email address of the user.
+    /// Gets or sets the email address of the user (hashed).
     /// </summary>
     [Required]
     public string Email { get; set; } = string.Empty;
