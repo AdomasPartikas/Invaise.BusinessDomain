@@ -62,7 +62,7 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>
 
-    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8001/openapi.json,ServiceHost=http://localhost:8001/,Name=GaiaAPIClient,Namespace=GaiaClient" Condition="!Exists('APIClients/GaiaAPIClient/GaiaAPIClient.cs')">
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/openapi.json,ServiceHost=http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/,Name=GaiaAPIClient,Namespace=GaiaClient" Condition="!Exists('APIClients/GaiaAPIClient/GaiaAPIClient.cs')">
       <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>

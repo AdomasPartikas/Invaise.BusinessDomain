@@ -65,7 +65,7 @@ namespace Invaise.BusinessDomain.API.GaiaAPIClient
         public HealthGaiaClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8001/";
+            BaseUrl = "http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -341,7 +341,7 @@ namespace Invaise.BusinessDomain.API.GaiaAPIClient
         public PredictGaiaClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8001/";
+            BaseUrl = "http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -634,7 +634,7 @@ namespace Invaise.BusinessDomain.API.GaiaAPIClient
         public OptimizeGaiaClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8001/";
+            BaseUrl = "http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -927,7 +927,7 @@ namespace Invaise.BusinessDomain.API.GaiaAPIClient
         public WeightsGaiaClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8001/";
+            BaseUrl = "http://invaise-gaia-service.norwayeast.azurecontainer.io:8001/";
             _httpClient = httpClient;
             Initialize();
         }
