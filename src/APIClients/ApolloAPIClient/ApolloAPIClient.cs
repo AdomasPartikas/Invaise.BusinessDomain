@@ -59,7 +59,7 @@ namespace Invaise.BusinessDomain.API.ApolloAPIClient
         public HealthApolloClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8002/";
+            BaseUrl = "http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -323,7 +323,7 @@ namespace Invaise.BusinessDomain.API.ApolloAPIClient
         public InfoApolloClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8002/";
+            BaseUrl = "http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -587,7 +587,7 @@ namespace Invaise.BusinessDomain.API.ApolloAPIClient
         public PredictApolloClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8002/";
+            BaseUrl = "http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -881,7 +881,7 @@ namespace Invaise.BusinessDomain.API.ApolloAPIClient
         public StatusApolloClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8002/";
+            BaseUrl = "http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -1157,7 +1157,7 @@ namespace Invaise.BusinessDomain.API.ApolloAPIClient
         public TrainApolloClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8002/";
+            BaseUrl = "http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/";
             _httpClient = httpClient;
             Initialize();
         }

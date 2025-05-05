@@ -59,7 +59,7 @@ namespace Invaise.BusinessDomain.API.IgnisAPIClient
         public HealthIgnisClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8003/";
+            BaseUrl = "http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -323,7 +323,7 @@ namespace Invaise.BusinessDomain.API.IgnisAPIClient
         public InfoIgnisClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8003/";
+            BaseUrl = "http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -587,7 +587,7 @@ namespace Invaise.BusinessDomain.API.IgnisAPIClient
         public TrainIgnisClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8003/";
+            BaseUrl = "http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -858,7 +858,7 @@ namespace Invaise.BusinessDomain.API.IgnisAPIClient
         public StatusIgnisClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8003/";
+            BaseUrl = "http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/";
             _httpClient = httpClient;
             Initialize();
         }
@@ -1136,7 +1136,7 @@ namespace Invaise.BusinessDomain.API.IgnisAPIClient
         public PredictIgnisClient(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            BaseUrl = "http://localhost:8003/";
+            BaseUrl = "http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/";
             _httpClient = httpClient;
             Initialize();
         }

@@ -67,12 +67,12 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>
 
-    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8002/openapi.json,ServiceHost=http://localhost:8002/,Name=ApolloAPIClient,Namespace=ApolloClient" Condition="!Exists('APIClients/ApolloAPIClient/ApolloAPIClient.cs')">
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/openapi.json,ServiceHost=http://invaise-apollo-service.norwayeast.azurecontainer.io:8002/,Name=ApolloAPIClient,Namespace=ApolloClient" Condition="!Exists('APIClients/ApolloAPIClient/ApolloAPIClient.cs')">
       <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>
 
-    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://localhost:8003/openapi.json,ServiceHost=http://localhost:8003/,Name=IgnisAPIClient,Namespace=IgnisClient" Condition="!Exists('APIClients/IgnisAPIClient/IgnisAPIClient.cs')">
+    <Exec ConsoleToMSBuild="true" ContinueOnError="true" Command="$(NSwagExe_Net80) run nswag.json /variables:Url=http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/openapi.json,ServiceHost=http://invaise-ignis-service.norwayeast.azurecontainer.io:8003/,Name=IgnisAPIClient,Namespace=IgnisClient" Condition="!Exists('APIClients/IgnisAPIClient/IgnisAPIClient.cs')">
       <Output TaskParameter="ExitCode" PropertyName="NSwagExitCode" />
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" /> 
     </Exec>
