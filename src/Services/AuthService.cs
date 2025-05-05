@@ -161,7 +161,7 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         // Validate the token and get user ID
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(model.Token);
-        var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        var userId = jwtToken.Claims.FirstOrDefault(x => x.Type == "nameid")?.Value;
 
         if (userId == null)
             throw new InvalidOperationException("Invalid token");
