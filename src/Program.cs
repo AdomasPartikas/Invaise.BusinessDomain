@@ -303,8 +303,8 @@ try
 
         Log.Debug("Starting initial data import... Please wait.");
 
-        await marketDataService.FetchAndImportHistoricalMarketDataAsync();
-        await marketDataService.ImportCompanyDataAsync();
+        //await marketDataService.FetchAndImportHistoricalMarketDataAsync();
+        //await marketDataService.ImportCompanyDataAsync();
 
         Log.Debug("Initial data import completed.");
     }
