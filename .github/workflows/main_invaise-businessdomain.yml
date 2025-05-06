@@ -1,70 +1,101 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - Invaise-BusinessDomain
+name: Build, Analyze, and Deploy ASP.Net Core app to Azure Web App - Invaise-BusinessDomain
 
 on:
   push:
     branches:
-      - main
+      - '**'
   workflow_dispatch:
 
 jobs:
+# ──────────────────────────────────────────────
+# BUILD + TEST + PACKAGE
+# ──────────────────────────────────────────────
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
+    - name: Set up .NET SDK 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
-        working-directory: ./src
+    - name: Install SonarScanner for .NET
+      run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
-        working-directory: ./src
+    - name: Sonar – begin
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        dotnet sonarscanner begin \
+          /k:"AdomasPartikas_Invaise.BusinessDomain" \
+          /o:"adomaspartikas" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.cs.cobertura.reportsPaths="TestResults/**/coverage.cobertura.xml" \
+          /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+    - name: Build API (Release)
+      run: dotnet build src/Invaise.BusinessDomain.API.csproj -c Release
 
+    # ── UNIT TESTS + COVERAGE ─────────────────
+    - name: Run tests and collect coverage
+      run: |
+        dotnet test Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj \
+          --configuration Release \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults
+
+    - name: Sonar – end & upload
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: dotnet sonarscanner end
+
+    # ── PUBLISH ───────────────────────────────
+    - name: Publish API
+      run: dotnet publish src/Invaise.BusinessDomain.API.csproj -c Release -o ./publish
+
+    - name: Upload artefact for deployment
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-publish
+        path: ./publish
+
+# ──────────────────────────────────────────────
+# DEPLOY (only on master)
+# ──────────────────────────────────────────────
   deploy:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'Production'
+      name: Production
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4FCA156C19EB464D9C41128192C3170B }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A99D8AC51A3D4DA980A851C178D3F5FA }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_21EC107742C4419596E64BDF36906E3A }}
+    - name: Download build artefact
+      uses: actions/download-artifact@v4
+      with:
+        name: api-publish
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'Invaise-BusinessDomain'
-          slot-name: 'Production'
-          package: .
-          
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4FCA156C19EB464D9C41128192C3170B }}
+        tenant-id:  ${{ secrets.AZUREAPPSERVICE_TENANTID_A99D8AC51A3D4DA980A851C178D3F5FA }}
+        subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_21EC107742C4419596E64BDF36906E3A }}
+
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: Invaise-BusinessDomain
+        slot-name: Production
+        package: ./api-publish
