@@ -66,6 +66,7 @@ jobs:
           -reporttypes:Cobertura \
           -targetdir:coverage_tmp
         mv coverage_tmp/Cobertura.xml coverage.cobertura.xml
+        sed -i 's/version="0\.1"/version="1"/' coverage.cobertura.xml
 
     # ── END SONAR ANALYSIS (pass exact path) ────────────────
     - name: Sonar – end & upload
