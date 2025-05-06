@@ -17,11 +17,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up .NET SDK 8
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x'
+
+    - name: Install SonarScanner for .NET
+      run: dotnet tool install --global dotnet-sonarscanner
+
+    - name: Sonar – begin
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        dotnet sonarscanner begin \
+          /k:"AdomasPartikas_Invaise.BusinessDomain" \
+          /o:"adomaspartikas" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.cs.cobertura.reportsPaths="TestResults/**/coverage.cobertura.xml" \
+          /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
 
     - name: Build API (Release)
       run: dotnet build src/Invaise.BusinessDomain.API.csproj -c Release
@@ -32,32 +48,12 @@ jobs:
         dotnet test Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj \
           --configuration Release \
           --collect:"XPlat Code Coverage" \
-          --results-directory ./TestResults \
-          --verbosity normal
+          --results-directory ./TestResults
 
-    - name: Locate coverage file
-      id: coverage
-      run: |
-        COV=$(find ./TestResults -name 'coverage.cobertura.xml' | head -n 1)
-        echo "COV_PATH=$COV" >> "$GITHUB_ENV"
-        echo "Coverage file found at $COV"
-
-    # ── SONARCLOUD ────────────────────────────
-    - name: SonarCloud scan
-      uses: SonarSource/sonarqube-scan-action@v5
+    - name: Sonar – end & upload
       env:
-        SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: https://sonarcloud.io
-      with:
-        projectBaseDir: .
-        args: >
-          -Dsonar.organization=adomaspartikas
-          -Dsonar.projectKey=AdomasPartikas_Invaise.BusinessDomain
-          -Dsonar.cs.cobertura.reportsPaths=TestResults/**/coverage.cobertura.xml
-          -Dsonar.exclusions=coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**
-          -Dsonar.cs.cobertura.reportsPaths=$COV_PATH
-          -Dsonar.sources=src
-          -Dsonar.tests=Tests
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: dotnet sonarscanner end
 
     # ── PUBLISH ───────────────────────────────
     - name: Publish API
