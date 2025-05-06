@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+          dotnet test ./Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj --no-build --configuration Release --collect:"XPlat Code Coverage"
           echo "Tests complete"
 
       - name: Find coverage file
