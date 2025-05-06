@@ -59,9 +59,7 @@ jobs:
 
     # ── PUBLISH ───────────────────────────────
     - name: Publish API
-      run: dotnet publish src/Invaise.BusinessDomain.API.csproj \
-            -c Release \
-            -o ./publish
+      run: dotnet publish src/Invaise.BusinessDomain.API.csproj -c Release -o ./publish
 
     - name: Upload artefact for deployment
       uses: actions/upload-artifact@v4
