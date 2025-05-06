@@ -56,8 +56,15 @@ jobs:
       run: |
         COV=$(find TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)
         echo "Found: $COV"
-        cp "$COV" coverage.cobertura.xml
-        sed -i 's/version="1\.9"/version="1"/' coverage.cobertura.xml
+
+    - name: Convert coverage to Cobertura 1.0
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator \
+          -reports:"${{ env.COV_FILE }}" \
+          -reporttypes:Cobertura \
+          -targetdir:coverage_tmp
+        mv coverage_tmp/Cobertura.xml coverage.cobertura.xml
 
     # ── END SONAR ANALYSIS (pass exact path) ────────────────
     - name: Sonar – end & upload
