@@ -36,7 +36,6 @@ jobs:
           /k:"AdomasPartikas_Invaise.BusinessDomain" \
           /o:"adomaspartikas" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.coverageReportPaths="TestResults/**/coverage.cobertura.xml" \
           /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
 
     - name: Build API (Release)
@@ -50,10 +49,21 @@ jobs:
           --collect:"XPlat Code Coverage" \
           --results-directory ./TestResults
 
-    - name: Sonar – end & upload
+    # Locate the file that Coverlet just created
+    - name: Locate coverage report
+      id: cov
+      run: |
+        COV=$(find TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)
+        echo "COVERAGE_FILE=$COV" >> "$GITHUB_ENV"
+        echo "Cobertura file: $COV"
+
+    # ── END SONAR ANALYSIS (pass exact path) ────────────────
+    - name: Sonar – end & upload
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet sonarscanner end
+      run: |
+        dotnet sonarscanner end \
+          /d:sonar.coverageReportPaths="${{ env.COVERAGE_FILE }}"
 
     # ── PUBLISH ───────────────────────────────
     - name: Publish API
