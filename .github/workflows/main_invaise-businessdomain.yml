@@ -42,15 +42,6 @@ jobs:
         echo "COV_PATH=$COV" >> "$GITHUB_ENV"
         echo "Coverage file found at $COV"
 
-    - name: Install ReportGenerator
-      run: dotnet tool install -g dotnet-reportgenerator-globaltool
-
-    - name: Generate HTML coverage report
-      run: |
-        reportgenerator -reports:"$COV_PATH" \
-                        -targetdir:coverage-report \
-                        -reporttypes:Html
-
     # ── SONARCLOUD ────────────────────────────
     - name: SonarCloud scan
       uses: SonarSource/sonarqube-scan-action@v5
@@ -63,6 +54,8 @@ jobs:
           -Dsonar.organization=adomaspartikas
           -Dsonar.projectKey=AdomasPartikas_Invaise.BusinessDomain
           -Dsonar.cs.cobertura.reportsPaths=$COV_PATH
+          -Dsonar.sources=src
+          -Dsonar.tests=Tests
 
     # ── PUBLISH ───────────────────────────────
     - name: Publish API
