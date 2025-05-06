@@ -57,6 +57,7 @@ jobs:
         COV=$(find TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)
         echo "Found: $COV"
         cp "$COV" coverage.cobertura.xml
+        sed -i 's/version="1\.9"/version="1"/' coverage.cobertura.xml
 
     # ── END SONAR ANALYSIS (pass exact path) ────────────────
     - name: Sonar – end & upload
