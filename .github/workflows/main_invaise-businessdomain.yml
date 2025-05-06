@@ -36,8 +36,24 @@ jobs:
           /k:"AdomasPartikas_Invaise.BusinessDomain" \
           /o:"adomaspartikas" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.coverageReportPaths="coverage.cobertura.xml" \
+          /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.opencover.xml" \
           /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
+
+    - name: Create runsettings (OpenCover)
+      run: |
+        cat > coverlet.runsettings <<'EOF'
+        <RunSettings>
+          <DataCollectionRunSettings>
+            <DataCollectors>
+              <DataCollector friendlyName="XPlat Code Coverage">
+                <Configuration>
+                  <Format>opencover</Format>
+                </Configuration>
+              </DataCollector>
+            </DataCollectors>
+          </DataCollectionRunSettings>
+        </RunSettings>
+        EOF
 
     - name: Build API (Release)
       run: dotnet build src/Invaise.BusinessDomain.API.csproj -c Release
@@ -47,26 +63,9 @@ jobs:
       run: |
         dotnet test Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj \
           --configuration Release \
+          --settings coverlet.runsettings \
           --collect:"XPlat Code Coverage" \
           --results-directory ./TestResults
-
-    # Locate the file that Coverlet just created
-    - name: Locate coverage report
-      id: cov
-      run: |
-        COV=$(find TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)
-        echo "Found: $COV"
-        echo "COV_FILE=$COV" >> "$GITHUB_ENV"
-
-    - name: Convert coverage to Cobertura 1.0
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator \
-          -reports:"${{ env.COV_FILE }}" \
-          -reporttypes:Cobertura \
-          -targetdir:coverage_tmp
-        mv coverage_tmp/Cobertura.xml coverage.cobertura.xml
-        sed -i 's/version="0\.1"/version="1"/' coverage.cobertura.xml
 
     # ── END SONAR ANALYSIS (pass exact path) ────────────────
     - name: Sonar – end & upload
