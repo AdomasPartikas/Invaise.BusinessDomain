@@ -37,7 +37,7 @@ jobs:
         id: coverage-path
         run: |
           echo "Searching for coverage report..."
-          COV_PATH=$(find ./src -type f -name 'coverage.cobertura.xml' | head -n 1)
+          COV_PATH=$(find . -type f -name 'coverage.cobertura.xml' | head -n 1)
           if [ -z "$COV_PATH" ]; then
             echo "Coverage file not found!"
             exit 1
