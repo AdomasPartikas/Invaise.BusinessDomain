@@ -28,15 +28,30 @@ jobs:
         run: dotnet build --configuration Release --no-restore
         working-directory: ./src
 
-      - name: Test with coverage
-        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
-        working-directory: ./src
+      - name: Run tests with coverage
+        run: |
+          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+          echo "Tests complete"
+
+      - name: Find coverage file
+        id: coverage-path
+        run: |
+          echo "Searching for coverage report..."
+          COV_PATH=$(find ./src -type f -name 'coverage.cobertura.xml' | head -n 1)
+          if [ -z "$COV_PATH" ]; then
+            echo "Coverage file not found!"
+            exit 1
+          fi
+          echo "Coverage file found at: $COV_PATH"
+          echo "COV_PATH=$COV_PATH" >> $GITHUB_ENV
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
       - name: Generate coverage report
-        run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:Cobertura
+        run: |
+          reportgenerator -reports:"$COV_PATH" -targetdir:coverage-report -reporttypes:Cobertura
+
 
       - name: SonarCloud Analysis
         uses: SonarSource/sonarcloud-github-action@master
