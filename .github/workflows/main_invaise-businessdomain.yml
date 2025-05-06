@@ -53,6 +53,8 @@ jobs:
         args: >
           -Dsonar.organization=adomaspartikas
           -Dsonar.projectKey=AdomasPartikas_Invaise.BusinessDomain
+          -Dsonar.cs.cobertura.reportsPaths=TestResults/**/coverage.cobertura.xml
+          -Dsonar.exclusions=coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**
           -Dsonar.cs.cobertura.reportsPaths=$COV_PATH
           -Dsonar.sources=src
           -Dsonar.tests=Tests
