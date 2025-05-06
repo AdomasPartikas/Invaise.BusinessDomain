@@ -36,6 +36,7 @@ jobs:
           /k:"AdomasPartikas_Invaise.BusinessDomain" \
           /o:"adomaspartikas" \
           /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.coverageReportPaths="coverage.cobertura.xml" \
           /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
 
     - name: Build API (Release)
@@ -54,16 +55,14 @@ jobs:
       id: cov
       run: |
         COV=$(find TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)
-        echo "COVERAGE_FILE=$COV" >> "$GITHUB_ENV"
-        echo "Cobertura file: $COV"
+        echo "Found: $COV"
+        cp "$COV" coverage.cobertura.xml
 
     # ── END SONAR ANALYSIS (pass exact path) ────────────────
     - name: Sonar – end & upload
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        dotnet sonarscanner end \
-          /d:sonar.coverageReportPaths="${{ env.COVERAGE_FILE }}"
+      run: dotnet sonarscanner end
 
     # ── PUBLISH ───────────────────────────────
     - name: Publish API
