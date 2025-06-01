@@ -180,7 +180,7 @@ public class GaiaServiceTests : TestBase
         // Arrange
         var symbol = "AAPL";
         var portfolioId = "portfolio123";
-        var expectedDate = DateTime.UtcNow.AddDays(1);
+        var expectedDate = new DateTime(2025, 6, 2, 12, 0, 0, DateTimeKind.Utc); 
         var expectedPrediction = 150.5;
         
         var heatData = new API.GaiaAPIClient.HeatData
