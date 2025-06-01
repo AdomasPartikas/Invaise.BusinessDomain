@@ -42,7 +42,7 @@ public class ModelPerformanceServiceTests : TestBase
     {
         // Arrange
         _aiModelServiceMock.Setup(service => service.GetModelByIdAsync(99))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
             
         // Act
         var result = await _service.CheckIfModelNeedsRetrainingAsync(99);
@@ -143,7 +143,7 @@ public class ModelPerformanceServiceTests : TestBase
     {
         // Arrange
         _aiModelServiceMock.Setup(service => service.GetModelByIdAsync(99))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
             
         // Act
         var result = await _service.InitiateModelRetrainingAsync(99);
@@ -159,7 +159,7 @@ public class ModelPerformanceServiceTests : TestBase
         var model = new AIModel
         {
             Id = 3,
-            Name = "Gaia", // Only Apollo and Ignis support retraining
+            Name = "Gaia", 
             ModelStatus = AIModelStatus.Active
         };
         
@@ -273,8 +273,8 @@ public class ModelPerformanceServiceTests : TestBase
         // Arrange
         var models = new List<AIModel>
         {
-            new AIModel { Id = 1, Name = "Apollo", ModelStatus = AIModelStatus.Training },
-            new AIModel { Id = 2, Name = "Ignis", ModelStatus = AIModelStatus.Training }
+            new() { Id = 1, Name = "Apollo", ModelStatus = AIModelStatus.Training },
+            new() { Id = 2, Name = "Ignis", ModelStatus = AIModelStatus.Training }
         };
         
         _aiModelServiceMock.Setup(service => service.GetModelsByStatusAsync(AIModelStatus.Training))
@@ -298,10 +298,9 @@ public class ModelPerformanceServiceTests : TestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Count);
-        Assert.False(result[1]); // Apollo finished training
-        Assert.True(result[2]); // Ignis still training
+        Assert.False(result[1]);
+        Assert.True(result[2]);
         
-        // Verify status updates - only Apollo should be updated
         _aiModelServiceMock.Verify(service => service.UpdateModelStatusAsync(1, AIModelStatus.Active), Times.Once);
         _aiModelServiceMock.Verify(service => service.UpdateModelTrainingDateAsync(1, It.IsAny<DateTime>()), Times.Once);
         _aiModelServiceMock.Verify(service => service.UpdateModelStatusAsync(2, It.IsAny<AIModelStatus>()), Times.Never);

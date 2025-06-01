@@ -14,19 +14,13 @@ public class AuthServiceTests : TestBase
         _mapperMock = new Mock<IMapper>();
         _emailServiceMock = new Mock<IEmailService>();
         
-        // Setup configuration with required JWT settings
-        var inMemorySettings = new Dictionary<string, string> {
-            {"JWT:Key", "YourSecureTestKeyWith32Characters!!"},
-            {"JWT:EmailSalt", "test-email-salt"},
-            {"JWT:Issuer", "test-issuer"},
-            {"JWT:Audience", "test-audience"},
-            {"JWT:TokenExpiryInDays", "7"},
-            {"JWT:TokenExpiryInMinutes", "30"}
-        };
+        // Use the configuration from TestBase and add additional JWT settings
+        _configurationMock.Setup(c => c["JWT:Key"]).Returns("your-secret-key-here-must-be-at-least-32-characters-long");
+        _configurationMock.Setup(c => c["JWT:Issuer"]).Returns("your-issuer");
+        _configurationMock.Setup(c => c["JWT:Audience"]).Returns("your-audience");
+        _configurationMock.Setup(c => c["JWT:ExpiryInMinutes"]).Returns("60");
 
-        _configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings)
-            .Build();
+        _configuration = _configurationMock.Object;
         
         _authService = new AuthService(_dbServiceMock.Object, _configuration, _mapperMock.Object, _emailServiceMock.Object);
     }
@@ -42,10 +36,10 @@ public class AuthServiceTests : TestBase
             Password = "Password123!"
         };
         
-        string hashedEmail = "hashed_email"; // This is a simplification
+        string hashedEmail = "hashed_email";
         
         _dbServiceMock.Setup(db => db.GetUserByEmailAsync(It.IsAny<string>()))
-            .ReturnsAsync((User)null); // No existing user
+            .ReturnsAsync((User?)null);
         
         _dbServiceMock.Setup(db => db.CreateUserAsync(It.IsAny<User>()))
             .ReturnsAsync(new User
@@ -254,7 +248,7 @@ public class AuthServiceTests : TestBase
     {
         // Arrange
         string email = "test@example.com";
-        string hashedEmail = "hashed_email"; // This is a simplification
+        string hashedEmail = "hashed_email";
         
         var user = new User
         {

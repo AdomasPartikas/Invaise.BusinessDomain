@@ -18,7 +18,6 @@ public class LogControllerTests : TestBase
         _dbServiceMock = new Mock<IDatabaseService>();
         _controller = new LogController(_dbServiceMock.Object);
         
-        // Setup controller context
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
         {
@@ -33,14 +32,13 @@ public class LogControllerTests : TestBase
         int count = 10;
         var expectedLogs = new List<Log>
         {
-            new Log { Id = 1, Message = "Log 1" },
-            new Log { Id = 2, Message = "Log 2" }
+            new() { Id = 1, Message = "Log 1" },
+            new() { Id = 2, Message = "Log 2" }
         };
         
         _dbServiceMock.Setup(s => s.GetLatestLogsAsync(count))
             .ReturnsAsync(expectedLogs);
             
-        // Set service account in HttpContext
         _controller.HttpContext.Items["ServiceAccount"] = new { Id = "service-account-id" };
 
         // Act
@@ -60,14 +58,13 @@ public class LogControllerTests : TestBase
         var adminUser = new User { Id = "admin-id", Role = "Admin" };
         var expectedLogs = new List<Log>
         {
-            new Log { Id = 1, Message = "Log 1" },
-            new Log { Id = 2, Message = "Log 2" }
+            new() { Id = 1, Message = "Log 1" },
+            new() { Id = 2, Message = "Log 2" }
         };
         
         _dbServiceMock.Setup(s => s.GetLatestLogsAsync(count))
             .ReturnsAsync(expectedLogs);
             
-        // Set admin user in HttpContext
         _controller.HttpContext.Items["User"] = adminUser;
 
         // Act
@@ -87,14 +84,13 @@ public class LogControllerTests : TestBase
         var nonAdminUser = new User { Id = "user-id", Role = "User" };
         var logs = new List<Log>
         {
-            new Log { Id = 1, Message = "Log 1" },
-            new Log { Id = 2, Message = "Log 2" }
+            new() { Id = 1, Message = "Log 1" },
+            new() { Id = 2, Message = "Log 2" }
         };
         
         _dbServiceMock.Setup(s => s.GetLatestLogsAsync(count))
             .ReturnsAsync(logs);
             
-        // Set non-admin user in HttpContext
         _controller.HttpContext.Items["User"] = nonAdminUser;
 
         // Act
@@ -109,8 +105,6 @@ public class LogControllerTests : TestBase
     {
         // Arrange
         int count = 10;
-        
-        // HttpContext does not have User or ServiceAccount
 
         // Act
         var result = await _controller.GetLatestLogs(count);
@@ -130,7 +124,6 @@ public class LogControllerTests : TestBase
         _dbServiceMock.Setup(s => s.GetLatestLogsAsync(count))
             .ThrowsAsync(new Exception("Test exception"));
             
-        // Set admin user in HttpContext
         _controller.HttpContext.Items["User"] = adminUser;
 
         // Act & Assert

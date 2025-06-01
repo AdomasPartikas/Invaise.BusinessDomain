@@ -33,15 +33,17 @@ public class PortfolioStockControllerTests : TestBase
             Role = "User",
             IsActive = true
         };
-        
+
         // Set up HttpContext
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", _testUser },
             { "ServiceAccount", null }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -62,7 +64,7 @@ public class PortfolioStockControllerTests : TestBase
         
         var stocks = new List<PortfolioStock>
         {
-            new PortfolioStock { 
+            new() { 
                 ID = "stock1", 
                 PortfolioId = portfolioId, 
                 Symbol = "AAPL", 
@@ -73,7 +75,7 @@ public class PortfolioStockControllerTests : TestBase
                 LastUpdated = DateTime.UtcNow,
                 Portfolio = portfolio
             },
-            new PortfolioStock { 
+            new() { 
                 ID = "stock2", 
                 PortfolioId = portfolioId, 
                 Symbol = "MSFT", 
@@ -108,7 +110,7 @@ public class PortfolioStockControllerTests : TestBase
         var portfolioId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.GetPortfolioStocks(portfolioId);
@@ -151,14 +153,16 @@ public class PortfolioStockControllerTests : TestBase
             Role = "Admin",
             IsActive = true
         };
-        
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", adminUser },
             { "ServiceAccount", null }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -174,7 +178,7 @@ public class PortfolioStockControllerTests : TestBase
         
         var stocks = new List<PortfolioStock>
         {
-            new PortfolioStock { 
+            new() { 
                 ID = "stock1", 
                 PortfolioId = portfolioId, 
                 Symbol = "AAPL", 
@@ -248,7 +252,7 @@ public class PortfolioStockControllerTests : TestBase
         var stockId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetPortfolioStockByIdAsync(stockId))
-            .ReturnsAsync((PortfolioStock)null);
+            .ReturnsAsync((PortfolioStock?)null);
         
         // Act
         var result = await _controller.GetPortfolioStock(stockId);
@@ -346,7 +350,7 @@ public class PortfolioStockControllerTests : TestBase
         // Assert
         var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
         Assert.Equal("GetPortfolioStock", createdAtActionResult.ActionName);
-        Assert.Equal(createdStock.ID, createdAtActionResult.RouteValues["id"]);
+        Assert.Equal(createdStock.ID, createdAtActionResult.RouteValues!["id"]);
         
         var resultStock = Assert.IsType<PortfolioStock>(createdAtActionResult.Value);
         Assert.Equal(createdStock.ID, resultStock.ID);
@@ -443,7 +447,7 @@ public class PortfolioStockControllerTests : TestBase
         };
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.AddStockToPortfolio(request);
@@ -567,7 +571,7 @@ public class PortfolioStockControllerTests : TestBase
         };
         
         _dbServiceMock.Setup(db => db.GetPortfolioStockByIdAsync(stockId))
-            .ReturnsAsync((PortfolioStock)null);
+            .ReturnsAsync((PortfolioStock?)null);
         
         // Act
         var result = await _controller.UpdatePortfolioStock(stockId, request);
@@ -658,7 +662,7 @@ public class PortfolioStockControllerTests : TestBase
         var result = await _controller.DeletePortfolioStock(stockId);
         
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result);
         TestFactory.AssertResponseMessage(result, "Portfolio stock deleted successfully");
     }
 
@@ -669,7 +673,7 @@ public class PortfolioStockControllerTests : TestBase
         var stockId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetPortfolioStockByIdAsync(stockId))
-            .ReturnsAsync((PortfolioStock)null);
+            .ReturnsAsync((PortfolioStock?)null);
         
         // Act
         var result = await _controller.DeletePortfolioStock(stockId);

@@ -22,21 +22,16 @@ public class AIModelServiceTests : TestBase, IDisposable
 
     public AIModelServiceTests()
     {
-        // Setup in-memory database
         _options = new DbContextOptionsBuilder<InvaiseDbContext>()
             .UseInMemoryDatabase(databaseName: $"AIModelTestDb_{Guid.NewGuid()}")
             .Options;
 
-        // Create DbContext with in-memory database
         _dbContext = new InvaiseDbContext(_options);
         
-        // Create test data
         SeedDatabase();
         
-        // Setup mock logger
         _logger = new Mock<ILogger>();
         
-        // Create service with real DbContext
         _service = new AIModelService(_dbContext, _logger.Object);
     }
 
@@ -47,7 +42,6 @@ public class AIModelServiceTests : TestBase, IDisposable
 
     private void SeedDatabase()
     {
-        // Add sample data to the in-memory database
         _dbContext.AIModels.AddRange(new List<AIModel>
         {
             new AIModel 
@@ -97,7 +91,6 @@ public class AIModelServiceTests : TestBase, IDisposable
         Assert.NotNull(result);
         Assert.Equal("Test Model", result.Name);
         
-        // Verify model was added to database
         var addedModel = await _dbContext.AIModels.FirstOrDefaultAsync(m => m.Name == "Test Model");
         Assert.NotNull(addedModel);
     }
@@ -170,7 +163,6 @@ public class AIModelServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify model was updated in database
         var updatedModel = await _dbContext.AIModels.FindAsync(1L);
         Assert.NotNull(updatedModel);
         Assert.Equal("Updated Model", updatedModel.Name);
@@ -192,7 +184,6 @@ public class AIModelServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify model was updated in database
         var updatedModel = await _dbContext.AIModels.FindAsync(modelId);
         Assert.NotNull(updatedModel);
         Assert.Equal(status, updatedModel.ModelStatus);
@@ -229,7 +220,6 @@ public class AIModelServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify model was updated in database
         var updatedModel = await _dbContext.AIModels.FindAsync(modelId);
         Assert.NotNull(updatedModel);
         Assert.Equal(trainedAt, updatedModel.LastTrainedAt);
@@ -251,7 +241,7 @@ public class AIModelServiceTests : TestBase, IDisposable
     }
 }
 
-// Helper classes for async enumeration support
+
 internal class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
 {
     private readonly IEnumerator<T> _enumerator;

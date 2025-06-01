@@ -10,15 +10,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 using Invaise.BusinessDomain.Test.Unit.Utilities;
+using Invaise.BusinessDomain.API.Interfaces;
+using Invaise.BusinessDomain.API.Services;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Threading.Tasks;
 
 namespace Invaise.BusinessDomain.Test.Unit.Services;
 
-// NOTE: This test file is skipped because we can't mock DbContext properties properly
-// The DbContext properties are not virtual or overridable, which makes it difficult to mock them
-// To properly test this service, we would need to:
-// 1. Use a different approach for mocking DbContext
-// 2. Or use an in-memory database for integration testing
-// 3. Or refactor the service to accept DbSet dependencies directly
 public class PortfolioOptimizationServiceTests : TestBase, IDisposable
 {
     private readonly InvaiseDbContext _dbContext;
@@ -28,33 +27,28 @@ public class PortfolioOptimizationServiceTests : TestBase, IDisposable
     private readonly Mock<ITransactionService> _transactionServiceMock;
     private readonly new Mock<Serilog.ILogger> _loggerMock;
     private readonly Mock<IMapper> _mapperMock;
-    private readonly DbContextOptions<InvaiseDbContext> _options;
 
     public PortfolioOptimizationServiceTests()
     {
-        // Setup in-memory database
-        _options = new DbContextOptionsBuilder<InvaiseDbContext>()
-            .UseInMemoryDatabase(databaseName: $"PortfolioOptimizationServiceTestDb_{Guid.NewGuid()}")
+        var options = new DbContextOptionsBuilder<InvaiseDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        // Create DbContext with in-memory database
-        _dbContext = new InvaiseDbContext(_options);
-        
-        // Create mocks
+        _dbContext = new InvaiseDbContext(options);
         _databaseServiceMock = new Mock<IDatabaseService>();
         _gaiaServiceMock = new Mock<IGaiaService>();
         _transactionServiceMock = new Mock<ITransactionService>();
         _loggerMock = new Mock<Serilog.ILogger>();
         _mapperMock = new Mock<IMapper>();
-        
-        // Create service with mocks and real DbContext
+
         _sut = new PortfolioOptimizationService(
             _databaseServiceMock.Object,
             _dbContext,
             _gaiaServiceMock.Object,
             _transactionServiceMock.Object,
             _loggerMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object
+        );
     }
 
     public void Dispose()
@@ -239,7 +233,6 @@ public class PortfolioOptimizationServiceTests : TestBase, IDisposable
         
         // Assert
         result.Should().BeGreaterThan(TimeSpan.Zero);
-        // Use separate assertions rather than BeInRange which isn't available for TimeSpan
         result.Should().BeGreaterThan(TimeSpan.FromHours(GaiaConstants.OptimizationCoolOffPeriod - 1.1));
         result.Should().BeLessThan(TimeSpan.FromHours(GaiaConstants.OptimizationCoolOffPeriod - 0.9));
     }
@@ -312,7 +305,7 @@ public class PortfolioOptimizationServiceTests : TestBase, IDisposable
             UserId = userId,
             PortfolioId = portfolioId,
             Status = PortfolioOptimizationStatus.Created,
-            Recommendations = new List<PortfolioOptimizationRecommendation>()
+            Recommendations = []
         };
         
         var optimizations = new List<PortfolioOptimization> { existingOptimization };
@@ -343,8 +336,6 @@ public class PortfolioOptimizationServiceTests : TestBase, IDisposable
         // Arrange
         var userId = "user123";
         var portfolioId = "nonexistent";
-        
-        // Empty database, no portfolios exist
         
         // Act
         var result = await _sut.OptimizePortfolioAsync(userId, portfolioId);

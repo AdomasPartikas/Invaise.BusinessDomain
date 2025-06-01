@@ -28,18 +28,14 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
     private readonly Mock<IPortfolioOptimizationService> _mockPortfolioOptimizationService;
     private readonly Mock<Serilog.ILogger> _mockLogger;
     private readonly ModelPredictionService _service;
-    private readonly DbContextOptions<InvaiseDbContext> _options;
 
     public ModelPredictionServiceTests()
     {
-        // Setup in-memory database
-        _options = new DbContextOptionsBuilder<InvaiseDbContext>()
-            .UseInMemoryDatabase(databaseName: $"ModelPredictionServiceTestDb_{Guid.NewGuid()}")
+        var options = new DbContextOptionsBuilder<InvaiseDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        // Create DbContext with in-memory database
-        _dbContext = new InvaiseDbContext(_options);
-        
+        _dbContext = new InvaiseDbContext(options);
         _mockDatabaseService = new Mock<IDatabaseService>();
         _mockApolloService = new Mock<IApolloService>();
         _mockIgnisService = new Mock<IIgnisService>();
@@ -73,33 +69,29 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         
         var predictions = new List<Prediction>
         {
-            new Prediction
-            {
+            new() {
                 Id = 1,
                 Symbol = symbol,
                 ModelSource = modelSource,
                 Timestamp = now.AddDays(-2),
                 Heat = new Heat { Symbol = symbol, Score = 60 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 2,
                 Symbol = symbol,
                 ModelSource = modelSource,
-                Timestamp = now.AddDays(-1), // Latest
+                Timestamp = now.AddDays(-1),
                 Heat = new Heat { Symbol = symbol, Score = 70 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 3,
                 Symbol = symbol,
-                ModelSource = ModelConstants.IGNIS_SOURCE, // Different source
+                ModelSource = ModelConstants.IGNIS_SOURCE,
                 Timestamp = now,
                 Heat = new Heat { Symbol = symbol, Score = 80 }
             }
         };
         
-        // Add predictions to the in-memory database
         _dbContext.Predictions.AddRange(predictions);
         await _dbContext.SaveChangesAsync();
 
@@ -108,7 +100,7 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(2); // Should be the most recent prediction for the given symbol and model source
+        result!.Id.Should().Be(2);
         result.Heat.Should().NotBeNull();
         result.Heat!.Score.Should().Be(70);
     }
@@ -119,8 +111,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         // Arrange
         var symbol = "AAPL";
         var modelSource = ModelConstants.APOLLO_SOURCE;
-        
-        // No predictions added to database
 
         // Act
         var result = await _service.GetLatestPredictionAsync(symbol, modelSource);
@@ -136,7 +126,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         var symbol = "AAPL";
         var modelSource = ModelConstants.APOLLO_SOURCE;
         
-        // Mock the logger directly without trying to mock DbContext
         _mockLogger.Setup(logger => logger.Error(
             It.IsAny<Exception>(), 
             It.IsAny<string>(), 
@@ -144,7 +133,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
             It.Is<string>(s => s == modelSource)))
             .Verifiable();
         
-        // Create a test implementation of IModelPredictionService that always throws
         var testService = new TestModelPredictionService(_mockLogger.Object);
         
         // Act
@@ -164,49 +152,43 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         
         var predictions = new List<Prediction>
         {
-            new Prediction
-            {
+            new() {
                 Id = 1,
                 Symbol = symbol,
                 ModelSource = ModelConstants.APOLLO_SOURCE,
                 Timestamp = now.AddDays(-2),
                 Heat = new Heat { Symbol = symbol, Score = 60 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 2,
                 Symbol = symbol,
                 ModelSource = ModelConstants.APOLLO_SOURCE,
-                Timestamp = now.AddDays(-1), // Latest Apollo
+                Timestamp = now.AddDays(-1),
                 Heat = new Heat { Symbol = symbol, Score = 70 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 3,
                 Symbol = symbol,
                 ModelSource = ModelConstants.IGNIS_SOURCE,
                 Timestamp = now.AddDays(-3),
                 Heat = new Heat { Symbol = symbol, Score = 50 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 4,
                 Symbol = symbol,
                 ModelSource = ModelConstants.IGNIS_SOURCE,
-                Timestamp = now, // Latest Ignis
+                Timestamp = now,
                 Heat = new Heat { Symbol = symbol, Score = 80 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 5,
-                Symbol = "MSFT", // Different symbol
+                Symbol = "MSFT",
                 ModelSource = ModelConstants.APOLLO_SOURCE,
                 Timestamp = now,
                 Heat = new Heat { Symbol = "MSFT", Score = 90 }
             }
         };
         
-        // Add predictions to the in-memory database
         _dbContext.Predictions.AddRange(predictions);
         await _dbContext.SaveChangesAsync();
 
@@ -215,11 +197,11 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.Count.Should().Be(2); // One for Apollo, one for Ignis
+        result.Count.Should().Be(2);
         result.Should().ContainKey(ModelConstants.APOLLO_SOURCE);
         result.Should().ContainKey(ModelConstants.IGNIS_SOURCE);
-        result[ModelConstants.APOLLO_SOURCE].Id.Should().Be(2); // Latest Apollo prediction
-        result[ModelConstants.IGNIS_SOURCE].Id.Should().Be(4); // Latest Ignis prediction
+        result[ModelConstants.APOLLO_SOURCE].Id.Should().Be(2);
+        result[ModelConstants.IGNIS_SOURCE].Id.Should().Be(4);
     }
 
     [Fact]
@@ -241,7 +223,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         result.Should().NotBeNull();
         result.Timestamp.Should().NotBe(default);
         
-        // Verify the prediction was saved to the database
         var savedPrediction = await _dbContext.Predictions.FindAsync(result.Id);
         savedPrediction.Should().NotBeNull();
         savedPrediction!.Symbol.Should().Be("AAPL");
@@ -253,7 +234,7 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
     public async Task StorePredictionAsync_DoesNotChangeTimestamp_IfAlreadySet()
     {
         // Arrange
-        var existingTimestamp = new DateTime(2023, 1, 1, 12, 0, 0);
+        var existingTimestamp = new DateTime(2023, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         var prediction = new Prediction
         {
             Symbol = "AAPL",
@@ -270,7 +251,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         result.Should().NotBeNull();
         result.Timestamp.Should().Be(existingTimestamp);
         
-        // Verify the prediction was saved to the database with original timestamp
         var savedPrediction = await _dbContext.Predictions.FindAsync(result.Id);
         savedPrediction.Should().NotBeNull();
         savedPrediction!.Timestamp.Should().Be(existingTimestamp);
@@ -296,7 +276,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
             It.Is<string>(s => s == prediction.ModelSource)))
             .Verifiable();
             
-        // Create a test service that always throws on StorePredictionAsync
         var testService = new TestModelPredictionService(_mockLogger.Object);
         
         // Act & Assert
@@ -316,49 +295,43 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         
         var predictions = new List<Prediction>
         {
-            new Prediction
-            {
+            new() {
                 Id = 1,
                 Symbol = symbol,
                 ModelSource = modelSource,
-                Timestamp = now.AddDays(-40), // Outside range
+                Timestamp = now.AddDays(-40),
                 Heat = new Heat { Symbol = symbol, Score = 50 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 2,
                 Symbol = symbol,
                 ModelSource = modelSource,
-                Timestamp = now.AddDays(-25), // In range
+                Timestamp = now.AddDays(-25),
                 Heat = new Heat { Symbol = symbol, Score = 60 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 3,
                 Symbol = symbol,
                 ModelSource = modelSource,
-                Timestamp = now.AddDays(-10), // In range
+                Timestamp = now.AddDays(-10),
                 Heat = new Heat { Symbol = symbol, Score = 70 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 4,
                 Symbol = symbol,
                 ModelSource = modelSource,
-                Timestamp = now.AddDays(5), // Outside range
+                Timestamp = now.AddDays(5),
                 Heat = new Heat { Symbol = symbol, Score = 80 }
             },
-            new Prediction
-            {
+            new() {
                 Id = 5,
                 Symbol = symbol,
-                ModelSource = ModelConstants.IGNIS_SOURCE, // Different source
+                ModelSource = ModelConstants.IGNIS_SOURCE,
                 Timestamp = now.AddDays(-15),
                 Heat = new Heat { Symbol = symbol, Score = 75 }
             }
         };
         
-        // Add predictions to the in-memory database
         _dbContext.Predictions.AddRange(predictions);
         await _dbContext.SaveChangesAsync();
         
@@ -367,12 +340,12 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         
         // Assert
         result.Should().NotBeNull();
-        result.Count().Should().Be(2); // Only the 2 predictions within the date range for the given source
+        result.Count().Should().Be(2);
         result.Should().Contain(p => p.Id == 2);
         result.Should().Contain(p => p.Id == 3);
-        result.Should().NotContain(p => p.Id == 1); // Outside date range
-        result.Should().NotContain(p => p.Id == 4); // Outside date range
-        result.Should().NotContain(p => p.Id == 5); // Different source
+        result.Should().NotContain(p => p.Id == 1);
+        result.Should().NotContain(p => p.Id == 4);
+        result.Should().NotContain(p => p.Id == 5);
     }
 
     [Fact]
@@ -381,7 +354,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         // Arrange
         var symbol = "AAPL";
         
-        // Setup Apollo mock
         var apolloHeat = new Heat { Symbol = symbol, Score = 75 };
         var apolloResponse = new ValueTuple<Heat, double>(apolloHeat, 180.0);
         _mockApolloService.Setup(s => s.GetHeatPredictionAsync(symbol))
@@ -389,7 +361,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockApolloService.Setup(s => s.GetModelVersionAsync())
             .ReturnsAsync("1.0.0");
             
-        // Setup Ignis mock
         var ignisHeat = new Heat { Symbol = symbol, Score = 65 };
         var ignisResponse = new ValueTuple<Heat, double>(ignisHeat, 175.0);
         _mockIgnisService.Setup(s => s.GetHeatPredictionAsync(symbol))
@@ -397,7 +368,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockIgnisService.Setup(s => s.GetModelVersionAsync())
             .ReturnsAsync("2.0.0");
             
-        // Setup market data mocks
         var historicalData = new HistoricalMarketData { Symbol = symbol, Close = 170.0m };
         var intradayData = new IntradayMarketData { Symbol = symbol, Current = 172.0m };
         _mockDatabaseService.Setup(s => s.GetLatestHistoricalMarketDataAsync(symbol))
@@ -428,7 +398,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         result[ModelConstants.IGNIS_SOURCE].Heat.Should().Be(ignisHeat);
         result[ModelConstants.IGNIS_SOURCE].CurrentPrice.Should().Be(172.0m);
         
-        // Verify the predictions were saved to the database
         var savedPredictions = await _dbContext.Predictions
             .Where(p => p.Symbol == symbol && (p.ModelSource == ModelConstants.APOLLO_SOURCE || p.ModelSource == ModelConstants.IGNIS_SOURCE))
             .ToListAsync();
@@ -446,10 +415,9 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
             Name = "Test Portfolio"
         };
 
-        // Create PortfolioStocks with references to the portfolio
         portfolio.PortfolioStocks = new List<PortfolioStock>
         {
-            new PortfolioStock { 
+            new() { 
                 Symbol = "AAPL", 
                 PortfolioId = portfolioId,
                 Quantity = 10,
@@ -459,7 +427,7 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
                 LastUpdated = DateTime.UtcNow,
                 Portfolio = portfolio
             },
-            new PortfolioStock { 
+            new() { 
                 Symbol = "MSFT", 
                 PortfolioId = portfolioId,
                 Quantity = 5,
@@ -474,13 +442,11 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockDatabaseService.Setup(s => s.GetPortfolioByIdWithPortfolioStocksAsync(portfolioId))
             .ReturnsAsync(portfolio);
             
-        // Setup for symbol AAPL
         var appleHeat = new Heat { Symbol = "AAPL", Score = 75 };
         var appleResponse = new ValueTuple<Heat, DateTime, double>(appleHeat, DateTime.UtcNow.AddDays(30), 180.0);
         _mockGaiaService.Setup(s => s.GetHeatPredictionAsync("AAPL", portfolioId))
             .ReturnsAsync(appleResponse);
             
-        // Setup for symbol MSFT
         var msftHeat = new Heat { Symbol = "MSFT", Score = 65 };
         var msftResponse = new ValueTuple<Heat, DateTime, double>(msftHeat, DateTime.UtcNow.AddDays(30), 300.0);
         _mockGaiaService.Setup(s => s.GetHeatPredictionAsync("MSFT", portfolioId))
@@ -489,7 +455,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockGaiaService.Setup(s => s.GetModelVersionAsync())
             .ReturnsAsync("3.0.0");
             
-        // Setup market data mocks
         var appleIntradayData = new IntradayMarketData { Symbol = "AAPL", Current = 172.0m };
         var msftIntradayData = new IntradayMarketData { Symbol = "MSFT", Current = 290.0m };
         _mockDatabaseService.Setup(s => s.GetLatestIntradayMarketDataAsync("AAPL"))
@@ -518,7 +483,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         result["MSFT"].ModelVersion.Should().Be("3.0.0");
         result["MSFT"].Heat.Should().Be(msftHeat);
         
-        // Verify the predictions were saved to the database
         var savedPredictions = await _dbContext.Predictions
             .Where(p => (p.Symbol == "AAPL" || p.Symbol == "MSFT") && p.ModelSource == ModelConstants.GAIA_SOURCE)
             .ToListAsync();
@@ -531,20 +495,18 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         // Arrange
         var companies = new List<Company>
         {
-            new Company { Symbol = "AAPL", Name = "Apple Inc." },
-            new Company { Symbol = "MSFT", Name = "Microsoft Corporation" }
+            new() { Symbol = "AAPL", Name = "Apple Inc." },
+            new() { Symbol = "MSFT", Name = "Microsoft Corporation" }
         };
         
         _mockDatabaseService.Setup(s => s.GetAllCompaniesAsync())
             .ReturnsAsync(companies);
             
-        // Setup Apollo mock for AAPL
         var appleApolloHeat = new Heat { Symbol = "AAPL", Score = 75 };
         var appleApolloResponse = new ValueTuple<Heat, double>(appleApolloHeat, 180.0);
         _mockApolloService.Setup(s => s.GetHeatPredictionAsync("AAPL"))
             .ReturnsAsync(appleApolloResponse);
             
-        // Setup Apollo mock for MSFT
         var msftApolloHeat = new Heat { Symbol = "MSFT", Score = 65 };
         var msftApolloResponse = new ValueTuple<Heat, double>(msftApolloHeat, 300.0);
         _mockApolloService.Setup(s => s.GetHeatPredictionAsync("MSFT"))
@@ -553,13 +515,11 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockApolloService.Setup(s => s.GetModelVersionAsync())
             .ReturnsAsync("1.0.0");
             
-        // Setup Ignis mock for AAPL
         var appleIgnisHeat = new Heat { Symbol = "AAPL", Score = 70 };
         var appleIgnisResponse = new ValueTuple<Heat, double>(appleIgnisHeat, 175.0);
         _mockIgnisService.Setup(s => s.GetHeatPredictionAsync("AAPL"))
             .ReturnsAsync(appleIgnisResponse);
             
-        // Setup Ignis mock for MSFT
         var msftIgnisHeat = new Heat { Symbol = "MSFT", Score = 60 };
         var msftIgnisResponse = new ValueTuple<Heat, double>(msftIgnisHeat, 295.0);
         _mockIgnisService.Setup(s => s.GetHeatPredictionAsync("MSFT"))
@@ -568,7 +528,6 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         _mockIgnisService.Setup(s => s.GetModelVersionAsync())
             .ReturnsAsync("2.0.0");
             
-        // Setup market data mocks
         var appleHistoricalData = new HistoricalMarketData { Symbol = "AAPL", Close = 170.0m };
         var msftHistoricalData = new HistoricalMarketData { Symbol = "MSFT", Close = 290.0m };
         var appleIntradayData = new IntradayMarketData { Symbol = "AAPL", Current = 172.0m };
@@ -586,17 +545,15 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         // Act
         await _service.RefreshAllPredictionsAsync();
         
-        // Assert - Check that predictions were saved to the database
+        // Assert
         var savedPredictions = await _dbContext.Predictions.ToListAsync();
-        savedPredictions.Count.Should().BeGreaterOrEqualTo(4); // At least 4 predictions (2 symbols x 2 sources)
+        savedPredictions.Count.Should().BeGreaterOrEqualTo(4);
         
-        // Verify Apollo predictions
         var apolloPredictions = savedPredictions.Where(p => p.ModelSource == ModelConstants.APOLLO_SOURCE).ToList();
         apolloPredictions.Count.Should().BeGreaterOrEqualTo(2);
         apolloPredictions.Should().Contain(p => p.Symbol == "AAPL");
         apolloPredictions.Should().Contain(p => p.Symbol == "MSFT");
         
-        // Verify Ignis predictions
         var ignisPredictions = savedPredictions.Where(p => p.ModelSource == ModelConstants.IGNIS_SOURCE).ToList();
         ignisPredictions.Count.Should().BeGreaterOrEqualTo(2);
         ignisPredictions.Should().Contain(p => p.Symbol == "AAPL");
@@ -604,20 +561,13 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
     }
 
     // Private test class to simulate exceptions
-    private class TestModelPredictionService : IModelPredictionService
+    private class TestModelPredictionService(Serilog.ILogger logger) : IModelPredictionService
     {
-        private readonly Serilog.ILogger _logger;
-        
-        public TestModelPredictionService(Serilog.ILogger logger)
-        {
-            _logger = logger;
-        }
-        
         public Task<Prediction?> GetLatestPredictionAsync(string symbol, string modelSource)
         {
             // Simulate an exception
             var exception = new Exception("Test exception");
-            _logger.Error(exception, "Error retrieving latest prediction for {Symbol} from {ModelSource}", symbol, modelSource);
+            logger.Error(exception, "Error retrieving latest prediction for {Symbol} from {ModelSource}", symbol, modelSource);
             return Task.FromResult<Prediction?>(null);
         }
         
@@ -628,7 +578,7 @@ public class ModelPredictionServiceTests : TestBase, IDisposable
         public Task<Prediction> StorePredictionAsync(Prediction prediction)
         {
             var exception = new Exception("Test exception");
-            _logger.Error(exception, "Error storing prediction for {Symbol} from {ModelSource}", 
+            logger.Error(exception, "Error storing prediction for {Symbol} from {ModelSource}", 
                 prediction.Symbol, prediction.ModelSource);
             throw exception;
         }

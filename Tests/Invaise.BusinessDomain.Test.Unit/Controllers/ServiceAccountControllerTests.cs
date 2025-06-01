@@ -18,7 +18,6 @@ public class ServiceAccountControllerTests : TestBase
         _authServiceMock = new Mock<IAuthService>();
         _controller = new ServiceAccountController(_authServiceMock.Object);
 
-        // Setup controller context
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
         {
@@ -33,7 +32,7 @@ public class ServiceAccountControllerTests : TestBase
         var model = new CreateServiceAccountDto
         {
             Name = "test-service",
-            Permissions = new string[] { "read:data", "write:data" }
+            Permissions = ["read:data", "write:data"]
         };
 
         var serviceAccount = new ServiceAccountDto
@@ -41,7 +40,7 @@ public class ServiceAccountControllerTests : TestBase
             Id = "service-id",
             Name = "test-service",
             KeyUnhashed = "test-api-key",
-            Permissions = new string[] { "read:data", "write:data" }
+            Permissions = ["read:data", "write:data"]
         };
 
         _authServiceMock.Setup(s => s.ServiceRegisterAsync(model.Name, model.Permissions))
@@ -66,7 +65,7 @@ public class ServiceAccountControllerTests : TestBase
         var model = new CreateServiceAccountDto
         {
             Name = "test-service",
-            Permissions = new string[] { "read:data", "write:data" }
+            Permissions = ["read:data", "write:data"]
         };
 
         _authServiceMock.Setup(s => s.ServiceRegisterAsync(model.Name, model.Permissions))

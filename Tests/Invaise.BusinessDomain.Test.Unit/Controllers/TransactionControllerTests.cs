@@ -22,14 +22,12 @@ public class TransactionControllerTests : TestBase
         _dbServiceMock = new Mock<IDatabaseService>();
         _controller = new TransactionController(_dbServiceMock.Object);
         
-        // Setup controller context
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
         };
         
-        // Create test user
         _testUser = new User
         {
             Id = "user-id",
@@ -38,7 +36,6 @@ public class TransactionControllerTests : TestBase
             Role = "User"
         };
         
-        // Set user in HttpContext
         _controller.HttpContext.Items["User"] = _testUser;
     }
 
@@ -48,7 +45,7 @@ public class TransactionControllerTests : TestBase
         // Arrange
         var transactions = new List<Transaction>
         {
-            new Transaction { 
+            new() { 
                 Id = "1", 
                 UserId = _testUser.Id, 
                 Symbol = "AAPL", 
@@ -58,7 +55,7 @@ public class TransactionControllerTests : TestBase
                 Type = TransactionType.Buy,
                 TriggeredBy = AvailableTransactionTriggers.User
             },
-            new Transaction { 
+            new() { 
                 Id = "2", 
                 UserId = _testUser.Id, 
                 Symbol = "MSFT", 
@@ -96,7 +93,7 @@ public class TransactionControllerTests : TestBase
         
         var transactions = new List<Transaction>
         {
-            new Transaction { 
+            new() { 
                 Id = "1", 
                 PortfolioId = portfolioId, 
                 Symbol = "AAPL", 
@@ -106,7 +103,7 @@ public class TransactionControllerTests : TestBase
                 Type = TransactionType.Buy,
                 TriggeredBy = AvailableTransactionTriggers.User
             },
-            new Transaction { 
+            new() { 
                 Id = "2", 
                 PortfolioId = portfolioId, 
                 Symbol = "MSFT", 
@@ -140,7 +137,6 @@ public class TransactionControllerTests : TestBase
         string portfolioId = "portfolio-id";
         string otherUserId = "other-user-id";
         
-        // Change user to admin
         var adminUser = new User
         {
             Id = "admin-id",
@@ -160,7 +156,7 @@ public class TransactionControllerTests : TestBase
         
         var transactions = new List<Transaction>
         {
-            new Transaction { 
+            new() { 
                 Id = "1", 
                 PortfolioId = portfolioId, 
                 Symbol = "AAPL", 
@@ -170,7 +166,7 @@ public class TransactionControllerTests : TestBase
                 Type = TransactionType.Buy,
                 TriggeredBy = AvailableTransactionTriggers.User
             },
-            new Transaction { 
+            new() { 
                 Id = "2", 
                 PortfolioId = portfolioId, 
                 Symbol = "MSFT", 
@@ -204,7 +200,7 @@ public class TransactionControllerTests : TestBase
         string portfolioId = "non-existent-portfolio";
         
         _dbServiceMock.Setup(s => s.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
 
         // Act
         var result = await _controller.GetPortfolioTransactions(portfolioId);
@@ -306,7 +302,7 @@ public class TransactionControllerTests : TestBase
         };
         
         _dbServiceMock.Setup(s => s.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
 
         // Act
         var result = await _controller.CreateTransaction(request);
@@ -386,7 +382,6 @@ public class TransactionControllerTests : TestBase
         string transactionId = "transaction-id";
         string otherUserId = "other-user-id";
         
-        // Change user to admin
         var adminUser = new User
         {
             Id = "admin-id",
@@ -429,7 +424,7 @@ public class TransactionControllerTests : TestBase
         string transactionId = "non-existent-transaction";
         
         _dbServiceMock.Setup(s => s.GetTransactionByIdAsync(transactionId))
-            .ReturnsAsync((Transaction)null);
+            .ReturnsAsync((Transaction?)null);
 
         // Act
         var result = await _controller.CancelTransaction(transactionId);

@@ -183,7 +183,7 @@ public class IgnisServiceTests : TestBase
 
         // Assert
         result.Should().NotBeNull();
-        var (heat, prediction) = result.Value;
+        var (heat, _) = result.Value;
         heat.Direction.Should().Be("neutral"); // Default value
     }
 
@@ -212,7 +212,7 @@ public class IgnisServiceTests : TestBase
 
         // Assert
         result.Should().NotBeNull();
-        var (heat, prediction) = result.Value;
+        var (heat, _) = result.Value;
         heat.Explanation.Should().Be("No explanation available"); // Default value
     }
 

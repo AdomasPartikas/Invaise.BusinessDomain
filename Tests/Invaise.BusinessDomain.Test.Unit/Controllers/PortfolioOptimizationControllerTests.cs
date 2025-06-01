@@ -24,14 +24,12 @@ public class PortfolioOptimizationControllerTests : TestBase
         _serilogLoggerMock = new Mock<Serilog.ILogger>();
         _controller = new PortfolioOptimizationController(_portfolioOptimizationServiceMock.Object, _serilogLoggerMock.Object);
         
-        // Setup controller context
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
         };
         
-        // Create test user
         _testUser = new User
         {
             Id = "user-id",
@@ -40,7 +38,6 @@ public class PortfolioOptimizationControllerTests : TestBase
             Role = "User"
         };
         
-        // Set user in HttpContext
         _controller.HttpContext.Items["User"] = _testUser;
     }
 
@@ -88,8 +85,7 @@ public class PortfolioOptimizationControllerTests : TestBase
             
         var existingOptimizations = new List<PortfolioOptimizationResult>
         {
-            new PortfolioOptimizationResult
-            {
+            new() {
                 OptimizationId = "optimization-id",
                 UserId = _testUser.Id,
                 Timestamp = DateTime.UtcNow,
@@ -183,15 +179,13 @@ public class PortfolioOptimizationControllerTests : TestBase
         
         var optimizationResults = new List<PortfolioOptimizationResult>
         {
-            new PortfolioOptimizationResult
-            {
+            new() {
                 OptimizationId = "optimization-1",
                 UserId = _testUser.Id,
                 Timestamp = DateTime.UtcNow.AddDays(-7),
                 Status = PortfolioOptimizationStatus.Applied
             },
-            new PortfolioOptimizationResult
-            {
+            new() {
                 OptimizationId = "optimization-2",
                 UserId = _testUser.Id,
                 Timestamp = DateTime.UtcNow.AddDays(-1),
