@@ -16,6 +16,9 @@ public class KaggleService : IKaggleService
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task DownloadDatasetAsync(string datasetUrl)
     {
+        if (datasetUrl == null)
+            throw new ArgumentNullException(nameof(datasetUrl));
+            
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var dataPath = Path.GetFullPath(Path.Combine(baseDirectory, GlobalConstants.DataFolder));
 

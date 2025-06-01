@@ -8,7 +8,7 @@ namespace Invaise.BusinessDomain.API.Services;
 /// <summary>
 /// QuestPDF document implementation for portfolio performance reports
 /// </summary>
-public class PortfolioPerformanceDocument(PortfolioPerformanceReportModel model) : IDocument
+public class PortfolioPerformanceDocumentationService(PortfolioPerformanceReportModel model) : IDocument
 {
     
     /// <summary>

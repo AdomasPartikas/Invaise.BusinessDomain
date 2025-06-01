@@ -25,7 +25,7 @@ public static class TestFactory
     /// <summary>
     /// Creates a standard BadRequest test for a controller
     /// </summary>
-    public static void AssertBadRequestResult(IActionResult result, string expectedMessage = null)
+    public static void AssertBadRequestResult(IActionResult result, string? expectedMessage = null!)
     {
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.Equal(400, badRequestResult.StatusCode);
