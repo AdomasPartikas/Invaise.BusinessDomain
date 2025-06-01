@@ -14,7 +14,7 @@ namespace Invaise.BusinessDomain.Test.Unit.Attributes;
 
 public class AuthorizeAttributeTests : TestBase
 {
-    private AuthorizationFilterContext CreateContext(object? user = null, object? serviceAccount = null, bool includeAllowAnonymous = false)
+    private static AuthorizationFilterContext CreateContext(object? user = null, object? serviceAccount = null, bool includeAllowAnonymous = false)
     {
         // Create HttpContext with items
         var httpContext = new DefaultHttpContext();

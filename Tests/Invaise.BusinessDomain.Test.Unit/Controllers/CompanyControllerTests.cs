@@ -30,11 +30,13 @@ public class CompanyControllerTests : TestBase
         };
 
         // Set up HttpContext
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", _testUser },
             { "ServiceAccount", null }
+        }
         };
 
         _controller.ControllerContext = new ControllerContext
@@ -49,8 +51,8 @@ public class CompanyControllerTests : TestBase
         // Arrange
         var companies = new List<Company>
         {
-            new Company { StockId = 1, Symbol = "AAPL", Name = "Apple Inc." },
-            new Company { StockId = 2, Symbol = "MSFT", Name = "Microsoft Corporation" }
+            new() { StockId = 1, Symbol = "AAPL", Name = "Apple Inc." },
+            new() { StockId = 2, Symbol = "MSFT", Name = "Microsoft Corporation" }
         };
 
         _dbServiceMock.Setup(db => db.GetAllCompaniesAsync())

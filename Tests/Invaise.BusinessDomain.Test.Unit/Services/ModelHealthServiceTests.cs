@@ -141,7 +141,7 @@ public class ModelHealthServiceTests : TestBase
     {
         // Arrange
         _aiModelServiceMock.Setup(service => service.GetModelByIdAsync(99))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
 
         // Act
         var result = await _service.CheckModelHealthAsync(99);
@@ -251,7 +251,7 @@ public class ModelHealthServiceTests : TestBase
     {
         // Arrange
         _aiModelServiceMock.Setup(service => service.GetModelByIdAsync(99))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
 
         // Act
         var result = await _service.UpdateModelHealthStatusAsync(99, true);
@@ -265,7 +265,7 @@ public class ModelHealthServiceTests : TestBase
     {
         // Arrange
         _aiModelServiceMock.Setup(service => service.GetAllModelsAsync())
-            .ReturnsAsync(new List<AIModel>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _service.CheckAllModelsHealthAsync();

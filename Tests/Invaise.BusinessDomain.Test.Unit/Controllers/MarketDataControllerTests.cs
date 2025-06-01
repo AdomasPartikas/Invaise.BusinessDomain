@@ -31,8 +31,8 @@ public class MarketDataControllerTests : TestBase
         
         var expectedData = new List<HistoricalMarketData>
         {
-            new HistoricalMarketData { Symbol = symbol, Date = DateTime.Now.AddDays(-2) },
-            new HistoricalMarketData { Symbol = symbol, Date = DateTime.Now.AddDays(-1) }
+            new() { Symbol = symbol, Date = DateTime.Now.AddDays(-2) },
+            new() { Symbol = symbol, Date = DateTime.Now.AddDays(-1) }
         };
         
         _dbServiceMock.Setup(s => s.GetHistoricalMarketDataAsync(symbol, start, end))
@@ -73,8 +73,8 @@ public class MarketDataControllerTests : TestBase
         
         var expectedData = new List<IntradayMarketData>
         {
-            new IntradayMarketData { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-2) },
-            new IntradayMarketData { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-1) }
+            new() { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-2) },
+            new() { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-1) }
         };
         
         _dbServiceMock.Setup(s => s.GetIntradayMarketDataAsync(symbol, start, end))
@@ -147,8 +147,8 @@ public class MarketDataControllerTests : TestBase
         
         var expectedData = new List<IntradayMarketData>
         {
-            new IntradayMarketData { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-2) },
-            new IntradayMarketData { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-1) }
+            new() { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-2) },
+            new() { Symbol = symbol, Timestamp = DateTime.Now.AddHours(-1) }
         };
         
         _dbServiceMock.Setup(s => s.GetLatestIntradayMarketDataAsync(symbol, count))
@@ -235,8 +235,8 @@ public class MarketDataControllerTests : TestBase
         
         var expectedData = new List<HistoricalMarketData>
         {
-            new HistoricalMarketData { Symbol = symbol, Date = DateTime.Now.AddDays(-2) },
-            new HistoricalMarketData { Symbol = symbol, Date = DateTime.Now.AddDays(-1) }
+            new() { Symbol = symbol, Date = DateTime.Now.AddDays(-2) },
+            new() { Symbol = symbol, Date = DateTime.Now.AddDays(-1) }
         };
         
         _dbServiceMock.Setup(s => s.GetLatestHistoricalMarketDataAsync(symbol, count))
@@ -304,7 +304,7 @@ public class MarketDataControllerTests : TestBase
     {
         // Arrange
         _dbServiceMock.Setup(s => s.GetAllUniqueMarketDataSymbolsAsync())
-            .ReturnsAsync(new List<string>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _controller.GetAllUniqueSymbols();

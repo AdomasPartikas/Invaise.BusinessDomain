@@ -46,7 +46,7 @@ public class AuthControllerTests : TestBase
         var result = await _controller.Register(registerModel);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result);
         TestFactory.AssertResponseMessage(result, errorMessage);
     }
 
@@ -99,7 +99,7 @@ public class AuthControllerTests : TestBase
         var result = await _controller.Login(loginModel);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result);
         TestFactory.AssertResponseMessage(result, errorMessage);
     }
 
@@ -152,7 +152,7 @@ public class AuthControllerTests : TestBase
         var result = await _controller.ForgotPassword(forgotPasswordModel);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result);
         TestFactory.AssertResponseMessage(result, "If your email exists in our system, a password reset email has been sent.");
     }
 } 

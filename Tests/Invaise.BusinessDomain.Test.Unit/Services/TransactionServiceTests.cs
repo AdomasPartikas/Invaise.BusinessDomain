@@ -18,27 +18,25 @@ public class TransactionServiceTests : TestBase, IDisposable
     private readonly Mock<IDatabaseService> _dbServiceMock;
     private readonly Mock<IMarketDataService> _marketDataServiceMock;
     private readonly new Mock<Serilog.ILogger> _loggerMock;
-    private readonly DbContextOptions<InvaiseDbContext> _options;
 
     public TransactionServiceTests()
     {
-        // Setup in-memory database
-        _options = new DbContextOptionsBuilder<InvaiseDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TransactionServiceTestDb_{Guid.NewGuid()}")
+        var options = new DbContextOptionsBuilder<InvaiseDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        // Create DbContext with in-memory database
-        _dbContext = new InvaiseDbContext(_options);
-        
-        // Create test data
-        SeedDatabase();
-        
-        // Setup mocks
+        _dbContext = new InvaiseDbContext(options);
         _dbServiceMock = new Mock<IDatabaseService>();
         _marketDataServiceMock = new Mock<IMarketDataService>();
         _loggerMock = new Mock<Serilog.ILogger>();
-        
-        // Create service with mocks and real DbContext
+
+        var testUser = new User { Id = "test-user-id", DisplayName = "Test User", Email = "test@example.com" };
+        var testPortfolio = new Portfolio { Id = "test-portfolio-id", UserId = "test-user-id", Name = "Test Portfolio" };
+
+        _dbContext.Users.Add(testUser);
+        _dbContext.Portfolios.Add(testPortfolio);
+        _dbContext.SaveChanges();
+
         _service = new TransactionService(
             _dbContext,
             _dbServiceMock.Object,
@@ -54,11 +52,9 @@ public class TransactionServiceTests : TestBase, IDisposable
 
     private void SeedDatabase()
     {
-        // Add sample users
         _dbContext.Users.AddRange(new List<User>
         {
-            new User
-            {
+            new() {
                 Id = "user1",
                 Email = "user1@example.com",
                 DisplayName = "User One",
@@ -69,11 +65,9 @@ public class TransactionServiceTests : TestBase, IDisposable
             }
         });
         
-        // Add sample portfolios
         _dbContext.Portfolios.AddRange(new List<Portfolio>
         {
-            new Portfolio
-            {
+            new() {
                 Id = "portfolio1",
                 UserId = "user1",
                 Name = "Portfolio One",
@@ -83,11 +77,9 @@ public class TransactionServiceTests : TestBase, IDisposable
             }
         });
         
-        // Add sample portfolio stocks
         _dbContext.PortfolioStocks.AddRange(new List<PortfolioStock>
         {
-            new PortfolioStock
-            {
+            new() {
                 ID = "ps1",
                 PortfolioId = "portfolio1",
                 Symbol = "AAPL",
@@ -100,11 +92,9 @@ public class TransactionServiceTests : TestBase, IDisposable
             }
         });
         
-        // Add sample transactions
         _dbContext.Transactions.AddRange(new List<Transaction>
         {
-            new Transaction
-            {
+            new() {
                 Id = "tx1",
                 UserId = "user1",
                 PortfolioId = "portfolio1",
@@ -117,8 +107,7 @@ public class TransactionServiceTests : TestBase, IDisposable
                 Status = TransactionStatus.Succeeded,
                 TriggeredBy = AvailableTransactionTriggers.User
             },
-            new Transaction
-            {
+            new() {
                 Id = "tx2",
                 UserId = "user1",
                 PortfolioId = "portfolio1",
@@ -140,18 +129,19 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task CreateTransactionFromRecommendationAsync_CreatesNewBuyTransaction_WhenTargetQuantityIsGreaterThanCurrent()
     {
         // Arrange
+        SeedDatabase();
+        
         string userId = "user1";
         string portfolioId = "portfolio1";
         string symbol = "GOOG";
         decimal currentQuantity = 0;
         decimal targetQuantity = 2;
         
-        // Mock market data service to return a price
         _marketDataServiceMock.Setup(service => service.IsMarketOpenAsync())
-            .ReturnsAsync(false); // Market is closed, so transaction should stay on hold
+            .ReturnsAsync(false);
             
         _dbServiceMock.Setup(service => service.GetLatestIntradayMarketDataAsync(symbol))
-            .ReturnsAsync((IntradayMarketData)null);
+            .ReturnsAsync((IntradayMarketData?)null);
             
         _dbServiceMock.Setup(service => service.GetLatestHistoricalMarketDataAsync(symbol))
             .ReturnsAsync(new HistoricalMarketData { Close = 1500.0m });
@@ -171,7 +161,6 @@ public class TransactionServiceTests : TestBase, IDisposable
         Assert.Equal(TransactionStatus.OnHold, result.Status);
         Assert.Equal(AvailableTransactionTriggers.AI, result.TriggeredBy);
         
-        // Verify transaction was added to the database
         var finalTransactionCount = await _dbContext.Transactions.CountAsync();
         Assert.Equal(initialTransactionCount + 1, finalTransactionCount);
     }
@@ -180,15 +169,16 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task CreateTransactionFromRecommendationAsync_CreatesNewSellTransaction_WhenTargetQuantityIsLessThanCurrent()
     {
         // Arrange
+        SeedDatabase();
+        
         string userId = "user1";
         string portfolioId = "portfolio1";
         string symbol = "AAPL";
         decimal currentQuantity = 10;
         decimal targetQuantity = 5;
         
-        // Mock market data service to return a price
         _marketDataServiceMock.Setup(service => service.IsMarketOpenAsync())
-            .ReturnsAsync(false); // Market is closed, so transaction should stay on hold
+            .ReturnsAsync(false);
             
         _dbServiceMock.Setup(service => service.GetLatestIntradayMarketDataAsync(symbol))
             .ReturnsAsync(new IntradayMarketData { Current = 153.0m });
@@ -208,7 +198,6 @@ public class TransactionServiceTests : TestBase, IDisposable
         Assert.Equal(TransactionStatus.OnHold, result.Status);
         Assert.Equal(AvailableTransactionTriggers.AI, result.TriggeredBy);
         
-        // Verify transaction was added to the database
         var finalTransactionCount = await _dbContext.Transactions.CountAsync();
         Assert.Equal(initialTransactionCount + 1, finalTransactionCount);
     }
@@ -217,21 +206,19 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task CreateTransactionFromRecommendationAsync_ProcessesImmediately_WhenMarketIsOpen()
     {
         // Arrange
+        SeedDatabase();
+        
         string userId = "user1";
         string portfolioId = "portfolio1";
         string symbol = "AAPL";
         decimal currentQuantity = 10;
         decimal targetQuantity = 15;
         
-        // Mock market data service to return a price and indicate market is open
         _marketDataServiceMock.Setup(service => service.IsMarketOpenAsync())
             .ReturnsAsync(true);
             
         _dbServiceMock.Setup(service => service.GetLatestIntradayMarketDataAsync(symbol))
             .ReturnsAsync(new IntradayMarketData { Current = 153.0m });
-            
-        // Mock the portfolio to make the transaction succeed
-        var portfolio = await _dbContext.Portfolios.FindAsync("portfolio1");
 
         // Act
         var result = await _service.CreateTransactionFromRecommendationAsync(
@@ -243,41 +230,37 @@ public class TransactionServiceTests : TestBase, IDisposable
         Assert.Equal(5, result.Quantity);
         Assert.Equal(153.0m, result.PricePerShare);
         Assert.Equal(765.0m, result.TransactionValue);
-        Assert.Equal(TransactionStatus.Succeeded, result.Status); // Should be processed immediately
+        Assert.Equal(TransactionStatus.Succeeded, result.Status);
         
-        // Verify portfolio stock was updated
         var portfolioStock = await _dbContext.PortfolioStocks
             .FirstOrDefaultAsync(ps => ps.PortfolioId == portfolioId && ps.Symbol == symbol);
             
         Assert.NotNull(portfolioStock);
-        Assert.Equal(15, portfolioStock.Quantity); // Should be increased from 10 to 15
+        Assert.Equal(15, portfolioStock.Quantity);
     }
     
     [Fact]
     public async Task ProcessPendingTransactionsAsync_ProcessesOnHoldTransactions_WhenMarketIsOpen()
     {
         // Arrange
+        SeedDatabase();
+        
         _marketDataServiceMock.Setup(service => service.IsMarketOpenAsync())
             .ReturnsAsync(true);
             
         _dbServiceMock.Setup(service => service.GetLatestIntradayMarketDataAsync("MSFT"))
             .ReturnsAsync(new IntradayMarketData { Current = 255.0m });
-            
-        // Mock the portfolio to make the transaction succeed
-        var portfolio = await _dbContext.Portfolios.FindAsync("portfolio1");
 
         // Act
         var result = await _service.ProcessPendingTransactionsAsync();
 
         // Assert
-        Assert.Equal(1, result); // One transaction should be processed
+        Assert.Equal(1, result);
         
-        // Verify transaction status was updated
         var transaction = await _dbContext.Transactions.FindAsync("tx2");
         Assert.NotNull(transaction);
         Assert.Equal(TransactionStatus.Succeeded, transaction.Status);
         
-        // Verify portfolio stock was created
         var portfolioStock = await _dbContext.PortfolioStocks
             .FirstOrDefaultAsync(ps => ps.PortfolioId == "portfolio1" && ps.Symbol == "MSFT");
             
@@ -289,6 +272,8 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task ProcessPendingTransactionsAsync_DoesNotProcessTransactions_WhenMarketIsClosed()
     {
         // Arrange
+        SeedDatabase();
+        
         _marketDataServiceMock.Setup(service => service.IsMarketOpenAsync())
             .ReturnsAsync(false);
 
@@ -296,9 +281,8 @@ public class TransactionServiceTests : TestBase, IDisposable
         var result = await _service.ProcessPendingTransactionsAsync();
 
         // Assert
-        Assert.Equal(0, result); // No transactions should be processed
+        Assert.Equal(0, result);
         
-        // Verify transaction status is still on hold
         var transaction = await _dbContext.Transactions.FindAsync("tx2");
         Assert.NotNull(transaction);
         Assert.Equal(TransactionStatus.OnHold, transaction.Status);
@@ -308,6 +292,8 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task ApplyTransactionToPortfolioAsync_CreateNewPortfolioStock_WhenBuyingNewStock()
     {
         // Arrange
+        SeedDatabase();
+        
         var transaction = new Transaction
         {
             Id = "tx-new",
@@ -334,7 +320,6 @@ public class TransactionServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify portfolio stock was created
         var finalStockCount = await _dbContext.PortfolioStocks.CountAsync();
         Assert.Equal(initialStockCount + 1, finalStockCount);
         
@@ -351,6 +336,8 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task ApplyTransactionToPortfolioAsync_UpdateExistingPortfolioStock_WhenBuyingMoreShares()
     {
         // Arrange
+        SeedDatabase();
+        
         var transaction = new Transaction
         {
             Id = "tx-buy-more",
@@ -381,7 +368,6 @@ public class TransactionServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify portfolio stock was updated
         var updatedStock = await _dbContext.PortfolioStocks
             .FirstOrDefaultAsync(ps => ps.PortfolioId == "portfolio1" && ps.Symbol == "AAPL");
             
@@ -394,6 +380,8 @@ public class TransactionServiceTests : TestBase, IDisposable
     public async Task ApplyTransactionToPortfolioAsync_UpdateExistingPortfolioStock_WhenSellingShares()
     {
         // Arrange
+        SeedDatabase();
+        
         var transaction = new Transaction
         {
             Id = "tx-sell",
@@ -424,26 +412,27 @@ public class TransactionServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify portfolio stock was updated
         var updatedStock = await _dbContext.PortfolioStocks
             .FirstOrDefaultAsync(ps => ps.PortfolioId == "portfolio1" && ps.Symbol == "AAPL");
             
         Assert.NotNull(updatedStock);
         Assert.Equal(initialQuantity - 5, updatedStock.Quantity);
-        Assert.Equal(750.0m, updatedStock.TotalBaseValue); // Half the shares are sold, so half the base value remains
+        Assert.Equal(750.0m, updatedStock.TotalBaseValue);
     }
     
     [Fact]
     public async Task ApplyTransactionToPortfolioAsync_RemovesPortfolioStock_WhenSellingAllShares()
     {
         // Arrange
+        SeedDatabase();
+        
         var transaction = new Transaction
         {
             Id = "tx-sell-all",
             UserId = "user1",
             PortfolioId = "portfolio1",
             Symbol = "AAPL",
-            Quantity = 10, // Sell all 10 shares
+            Quantity = 10,
             PricePerShare = 155.0m,
             TransactionValue = 1550.0m,
             TransactionDate = DateTime.UtcNow,
@@ -463,7 +452,6 @@ public class TransactionServiceTests : TestBase, IDisposable
         // Assert
         Assert.True(result);
         
-        // Verify portfolio stock was removed
         var finalStockCount = await _dbContext.PortfolioStocks.CountAsync();
         Assert.Equal(initialStockCount - 1, finalStockCount);
         

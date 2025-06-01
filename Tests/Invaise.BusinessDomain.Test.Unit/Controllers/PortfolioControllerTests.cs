@@ -27,15 +27,17 @@ public class PortfolioControllerTests : TestBase
             Role = "User",
             IsActive = true
         };
-        
+
         // Set up HttpContext
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", _testUser },
             { "ServiceAccount", null }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -48,8 +50,8 @@ public class PortfolioControllerTests : TestBase
         // Arrange
         var portfolios = new List<Portfolio>
         {
-            new Portfolio { Id = "portfolio1", UserId = "user1", Name = "Portfolio 1" },
-            new Portfolio { Id = "portfolio2", UserId = "user1", Name = "Portfolio 2" }
+            new() { Id = "portfolio1", UserId = "user1", Name = "Portfolio 1" },
+            new() { Id = "portfolio2", UserId = "user1", Name = "Portfolio 2" }
         };
         
         _dbServiceMock.Setup(db => db.GetUserPortfoliosAsync(_testUser.Id))
@@ -95,7 +97,7 @@ public class PortfolioControllerTests : TestBase
         var portfolioId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.GetPortfolio(portfolioId);
@@ -138,14 +140,16 @@ public class PortfolioControllerTests : TestBase
             Role = "Admin",
             IsActive = true
         };
-        
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", adminUser },
             { "ServiceAccount", null }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -198,7 +202,7 @@ public class PortfolioControllerTests : TestBase
         // Assert
         var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
         Assert.Equal("GetPortfolio", createdAtActionResult.ActionName);
-        Assert.Equal(createdPortfolio.Id, createdAtActionResult.RouteValues["id"]);
+        Assert.Equal(createdPortfolio.Id, createdAtActionResult.RouteValues!["id"]);
         
         var resultPortfolio = Assert.IsType<Portfolio>(createdAtActionResult.Value);
         Assert.Equal(createdPortfolio.Id, resultPortfolio.Id);
@@ -262,7 +266,7 @@ public class PortfolioControllerTests : TestBase
         };
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.UpdatePortfolio(portfolioId, request);
@@ -322,7 +326,7 @@ public class PortfolioControllerTests : TestBase
         var result = await _controller.DeletePortfolio(portfolioId);
         
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result);
         TestFactory.AssertResponseMessage(result, "Portfolio deleted successfully");
     }
 
@@ -333,7 +337,7 @@ public class PortfolioControllerTests : TestBase
         var portfolioId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.DeletePortfolio(portfolioId);
@@ -432,7 +436,7 @@ public class PortfolioControllerTests : TestBase
         var endDate = DateTime.Now;
         
         _dbServiceMock.Setup(db => db.GetPortfolioByIdAsync(portfolioId))
-            .ReturnsAsync((Portfolio)null);
+            .ReturnsAsync((Portfolio?)null);
         
         // Act
         var result = await _controller.GeneratePortfolioPerformanceReport(portfolioId, startDate, endDate);

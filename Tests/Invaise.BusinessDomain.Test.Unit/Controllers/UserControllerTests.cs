@@ -26,14 +26,16 @@ public class UserControllerTests : TestBase
             Role = "User",
             IsActive = true
         };
-        
+
         // Set up HttpContext
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", _testUser }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -103,7 +105,7 @@ public class UserControllerTests : TestBase
         var userId = "nonexistent";
         
         _dbServiceMock.Setup(db => db.GetUserByIdAsync(userId, true))
-            .ReturnsAsync((User)null);
+            .ReturnsAsync((User?)null);
         
         // Act
         var result = await _controller.GetUserById(userId);
@@ -118,8 +120,8 @@ public class UserControllerTests : TestBase
         // Arrange
         var users = new List<User>
         {
-            new User { Id = "user1", DisplayName = "User One", Role = "User" },
-            new User { Id = "user2", DisplayName = "User Two", Role = "Admin" }
+            new() { Id = "user1", DisplayName = "User One", Role = "User" },
+            new() { Id = "user2", DisplayName = "User Two", Role = "Admin" }
         };
         
         _dbServiceMock.Setup(db => db.GetAllUsersAsync(false))
@@ -218,13 +220,15 @@ public class UserControllerTests : TestBase
             DisplayName = "Admin User",
             Role = "Admin"
         };
-        
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items = new Dictionary<object, object?>
+
+        var httpContext = new DefaultHttpContext
+        {
+            Items = new Dictionary<object, object?>
         {
             { "User", adminUser }
+        }
         };
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -234,7 +238,7 @@ public class UserControllerTests : TestBase
         var result = await _controller.IsUserAdmin();
         
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result);
         TestFactory.AssertResponseMessage(result, "User is an admin");
     }
 
@@ -257,7 +261,7 @@ public class UserControllerTests : TestBase
         {
             Address = "123 Main St",
             PhoneNumber = "555-1234",
-            DateOfBirth = new DateTime(1990, 1, 1)
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         };
         
         var existingUser = new User

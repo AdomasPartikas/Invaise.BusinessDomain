@@ -19,6 +19,7 @@ public abstract class TestBase
         // Configure common IConfiguration behavior
         _configurationMock.Setup(x => x["JwtSettings:TokenKey"]).Returns("YourSecureTestKeyWith32Characters!!");
         _configurationMock.Setup(x => x["JwtSettings:TokenExpiryInDays"]).Returns("7");
+        _configurationMock.Setup(x => x["JWT:EmailSalt"]).Returns("TestEmailSaltFor32Characters!!");
     }
     
     // Helper to create a mock DbContext

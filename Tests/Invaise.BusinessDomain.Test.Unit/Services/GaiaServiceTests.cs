@@ -183,12 +183,6 @@ public class GaiaServiceTests : TestBase
         var expectedDate = DateTime.UtcNow.AddDays(1);
         var expectedPrediction = 150.5;
         
-        var predictionRequest = new API.GaiaAPIClient.PredictionRequest
-        {
-            Symbol = symbol,
-            Portfolio_id = portfolioId
-        };
-        
         var heatData = new API.GaiaAPIClient.HeatData
         {
             Heat_score = 0.75,
@@ -297,11 +291,6 @@ public class GaiaServiceTests : TestBase
         // Arrange
         var portfolioId = "portfolio123";
         
-        var optimizationRequest = new API.GaiaAPIClient.OptimizationRequest
-        {
-            Portfolio_id = portfolioId
-        };
-        
         var optimizationResponse = new API.GaiaAPIClient.OptimizationResponse
         {
             Id = "opt123",
@@ -319,8 +308,7 @@ public class GaiaServiceTests : TestBase
             ExpectedReturn = 0.15,
             Recommendations = new List<API.GaiaAPIClient.RecommendationData>
             {
-                new API.GaiaAPIClient.RecommendationData
-                {
+                new() {
                     Symbol = "AAPL",
                     Action = "BUY",
                     CurrentQuantity = 10,
@@ -339,7 +327,7 @@ public class GaiaServiceTests : TestBase
             UserId = "user123",
             Explanation = "Portfolio optimized successfully",
             Confidence = 0.9,
-            Timestamp = DateTime.Parse(optimizationResponse.Timestamp)
+            Timestamp = DateTime.Parse(optimizationResponse.Timestamp, System.Globalization.CultureInfo.InvariantCulture)
         };
         
         _mockOptimizeClient
@@ -417,12 +405,6 @@ public class GaiaServiceTests : TestBase
         // Arrange
         double apolloWeight = 0.6;
         double ignisWeight = 0.4;
-        
-        var request = new API.GaiaAPIClient.WeightAdjustRequest
-        {
-            Apollo_weight = apolloWeight,
-            Ignis_weight = ignisWeight
-        };
         
         _mockWeightsClient
             .Setup(client => client.PostAsync(It.Is<API.GaiaAPIClient.WeightAdjustRequest>(req => 

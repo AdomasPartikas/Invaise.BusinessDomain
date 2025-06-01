@@ -90,8 +90,8 @@ public class AIModelControllerTests : TestBase
         // Arrange
         var models = new List<AIModel>
         {
-            new AIModel { Id = 1, Name = "Model 1" },
-            new AIModel { Id = 2, Name = "Model 2" }
+            new() { Id = 1, Name = "Model 1" },
+            new() { Id = 2, Name = "Model 2" }
         };
 
         _aiModelServiceMock.Setup(s => s.GetAllModelsAsync())
@@ -161,7 +161,7 @@ public class AIModelControllerTests : TestBase
         long modelId = 999;
 
         _aiModelServiceMock.Setup(s => s.GetModelByIdAsync(modelId))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
 
         // Act
         var result = await _controller.GetModelById(modelId);
@@ -201,8 +201,8 @@ public class AIModelControllerTests : TestBase
         var status = AIModelStatus.Active;
         var models = new List<AIModel>
         {
-            new AIModel { Id = 1, Name = "Model 1", ModelStatus = status },
-            new AIModel { Id = 2, Name = "Model 2", ModelStatus = status }
+            new() { Id = 1, Name = "Model 1", ModelStatus = status },
+            new() { Id = 2, Name = "Model 2", ModelStatus = status }
         };
 
         _aiModelServiceMock.Setup(s => s.GetModelsByStatusAsync(status))

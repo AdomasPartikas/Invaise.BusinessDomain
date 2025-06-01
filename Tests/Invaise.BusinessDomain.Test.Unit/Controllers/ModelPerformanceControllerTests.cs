@@ -150,7 +150,7 @@ public class ModelPerformanceControllerTests : TestBase
         long modelId = 999;
 
         _aiModelServiceMock.Setup(s => s.GetModelByIdAsync(modelId))
-            .ReturnsAsync((AIModel)null);
+            .ReturnsAsync((AIModel?)null);
 
         // Act
         var result = await _controller.InitiateRetraining(modelId);

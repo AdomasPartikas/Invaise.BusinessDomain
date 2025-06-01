@@ -32,8 +32,8 @@ public static class TestFactory
         
         if (expectedMessage != null)
         {
-            dynamic value = badRequestResult.Value;
-            Assert.Equal(expectedMessage, value.message.ToString());
+            dynamic? value = badRequestResult.Value;
+            Assert.Equal(expectedMessage, value!.message.ToString());
         }
     }
     
@@ -62,21 +62,21 @@ public static class TestFactory
     {
         if (result is OkObjectResult okResult)
         {
-            var messageProperty = okResult.Value.GetType().GetProperty("message");
+            var messageProperty = okResult.Value!.GetType().GetProperty("message");
             Assert.NotNull(messageProperty);
-            Assert.Equal(expectedMessage, messageProperty.GetValue(okResult.Value).ToString());
+            Assert.Equal(expectedMessage, messageProperty.GetValue(okResult.Value)!.ToString());
         }
         else if (result is BadRequestObjectResult badRequestResult)
         {
-            var messageProperty = badRequestResult.Value.GetType().GetProperty("message");
+            var messageProperty = badRequestResult.Value!.GetType().GetProperty("message");
             Assert.NotNull(messageProperty);
-            Assert.Equal(expectedMessage, messageProperty.GetValue(badRequestResult.Value).ToString());
+            Assert.Equal(expectedMessage, messageProperty.GetValue(badRequestResult.Value)!.ToString());
         }
         else if (result is ObjectResult objectResult)
         {
-            var messageProperty = objectResult.Value.GetType().GetProperty("message");
+            var messageProperty = objectResult.Value!.GetType().GetProperty("message");
             Assert.NotNull(messageProperty);
-            Assert.Equal(expectedMessage, messageProperty.GetValue(objectResult.Value).ToString());
+            Assert.Equal(expectedMessage, messageProperty.GetValue(objectResult.Value)!.ToString());
         }
         else
         {

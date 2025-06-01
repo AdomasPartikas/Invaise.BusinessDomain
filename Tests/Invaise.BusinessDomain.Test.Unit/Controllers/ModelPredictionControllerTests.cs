@@ -59,7 +59,7 @@ public class ModelPredictionControllerTests : TestBase
         string modelSource = "Apollo";
 
         _modelPredictionServiceMock.Setup(s => s.GetLatestPredictionAsync(symbol, modelSource))
-            .ReturnsAsync((Prediction)null);
+            .ReturnsAsync((Prediction?)null);
 
         // Act
         var result = await _controller.GetLatestPrediction(symbol, modelSource);
@@ -129,7 +129,7 @@ public class ModelPredictionControllerTests : TestBase
         string symbol = "AAPL";
 
         _modelPredictionServiceMock.Setup(s => s.GetAllLatestPredictionsAsync(symbol))
-            .ReturnsAsync(new Dictionary<string, Prediction>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _controller.GetAllLatestPredictions(symbol);
@@ -174,8 +174,8 @@ public class ModelPredictionControllerTests : TestBase
         
         var predictions = new List<Prediction>
         {
-            new Prediction { Symbol = symbol, ModelSource = modelSource, ModelVersion = "1.0", Timestamp = startDate.AddDays(5), PredictionTarget = startDate.AddDays(6) },
-            new Prediction { Symbol = symbol, ModelSource = modelSource, ModelVersion = "1.0", Timestamp = startDate.AddDays(10), PredictionTarget = startDate.AddDays(11) }
+            new() { Symbol = symbol, ModelSource = modelSource, ModelVersion = "1.0", Timestamp = startDate.AddDays(5), PredictionTarget = startDate.AddDays(6) },
+            new() { Symbol = symbol, ModelSource = modelSource, ModelVersion = "1.0", Timestamp = startDate.AddDays(10), PredictionTarget = startDate.AddDays(11) }
         };
 
         _modelPredictionServiceMock.Setup(s => s.GetHistoricalPredictionsAsync(symbol, modelSource, startDate, endDate))
@@ -249,7 +249,7 @@ public class ModelPredictionControllerTests : TestBase
         string symbol = "AAPL";
 
         _modelPredictionServiceMock.Setup(s => s.RefreshPredictionsAsync(symbol))
-            .ReturnsAsync(new Dictionary<string, Prediction>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _controller.RefreshPredictions(symbol);
@@ -316,7 +316,7 @@ public class ModelPredictionControllerTests : TestBase
         string portfolioId = "portfolio-123";
 
         _modelPredictionServiceMock.Setup(s => s.RefreshPortfolioPredictionsAsync(portfolioId))
-            .ReturnsAsync(new Dictionary<string, Prediction>());
+            .ReturnsAsync([]);
 
         // Act
         var result = await _controller.RefreshPortfolioPredictions(portfolioId);
