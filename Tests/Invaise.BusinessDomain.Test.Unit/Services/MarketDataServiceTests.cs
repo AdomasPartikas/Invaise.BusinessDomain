@@ -320,7 +320,7 @@ public class MarketDataServiceTests : TestBase, IDisposable
     }
 
     [Fact]
-    public void FetchAndImportHistoricalMarketDataAsync_SetsUpDependencies()
+    public async Task FetchAndImportHistoricalMarketDataAsync_SetsUpDependencies()
     {
         // Arrange
         _kaggleServiceMock
@@ -478,45 +478,83 @@ public class MarketDataServiceTests : TestBase, IDisposable
     public async Task ImportIntradayMarketDataAsync_HandlesFinnhubRateLimiting()
     {
         // Arrange
-        var symbols = new List<string> { "AAPL", "MSFT" };
-        
-        _dbServiceMock
-            .Setup(s => s.GetAllUniqueMarketDataSymbolsAsync())
-            .ReturnsAsync(symbols);
-            
-        _finnhubClientMock
-            .Setup(c => c.MarketStatusAsync("US"))
-            .ReturnsAsync(new MarketStatus { IsOpen = true });
-            
-        _finnhubClientMock
-            .SetupSequence(c => c.QuoteAsync("AAPL"))
-            .ThrowsAsync(new FinnhubAPIClientException("Rate limit exceeded", 429, "Rate limit exceeded", null, null))
-            .ReturnsAsync(new Quote 
-            { 
-                C = (float)160.0, 
-                H = (float)165.0, 
-                L = (float)159.0, 
-                O = (float)160.0,
-                Pc = (float)158.0,
-                T = 1625086800L //(July 1, 2021)
-            });
-            
-        // Setup mapper
-        _mapperMock
-            .Setup(m => m.Map<IntradayMarketData>(It.IsAny<Quote>()))
-            .Returns<Quote>(q => new IntradayMarketData
-            {
-                Current = (decimal)(q.C ?? 0),
-                High = (decimal)(q.H ?? 0),
-                Low = (decimal)(q.L ?? 0),
-                Open = (decimal)(q.O ?? 0),
-                Timestamp = q.T.HasValue ? DateTimeConverter.UnixTimestampToDateTime(q.T.Value) : DateTime.UtcNow
-            });
-            
+        var marketStatus = new MarketStatus { Exchange = "US", IsOpen = true };
+        _finnhubClientMock.Setup(client => client.MarketStatusAsync("US"))
+                          .ReturnsAsync(marketStatus);
+
+        var symbols = new List<string> { "AAPL" };
+        _dbServiceMock.Setup(db => db.GetAllUniqueMarketDataSymbolsAsync())
+                     .ReturnsAsync(symbols);
+
+        _finnhubClientMock.SetupSequence(client => client.QuoteAsync("AAPL"))
+                          .ThrowsAsync(new FinnhubAPIClientException("Rate limit exceeded", 429, "Too Many Requests", null, null))
+                          .ReturnsAsync(new Quote { C = 150.0f, O = 149.0f, H = 152.0f, L = 148.0f, T = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
+
+        var intradayData = new IntradayMarketData
+        {
+            Symbol = "AAPL",
+            Current = 150.0m,
+            Open = 149.0m,
+            High = 152.0m,
+            Low = 148.0m,
+            Timestamp = DateTime.UtcNow
+        };
+
+        _mapperMock.Setup(mapper => mapper.Map<IntradayMarketData>(It.IsAny<Quote>()))
+                   .Returns(intradayData);
+
         // Act
         await _service.ImportIntradayMarketDataAsync();
-        
+
         // Assert
-        _finnhubClientMock.Verify(c => c.QuoteAsync("AAPL"), Times.Exactly(2));
+        _finnhubClientMock.Verify(client => client.QuoteAsync("AAPL"), Times.Exactly(2));
+        Assert.Single(_dbContext.IntradayMarketData.Where(d => d.Symbol == "AAPL" && d.Current == 150.0m));
+    }
+
+    [Fact]
+    public async Task ImportIntradayMarketDataAsync_ProcessesMultipleSymbolsInOrder()
+    {
+        // Arrange
+        var marketStatus = new MarketStatus { Exchange = "US", IsOpen = true };
+        _finnhubClientMock.Setup(client => client.MarketStatusAsync("US"))
+                          .ReturnsAsync(marketStatus);
+
+        var symbols = new List<string> { "MSFT", "AAPL", "GOOGL" }; // Unordered
+        _dbServiceMock.Setup(db => db.GetAllUniqueMarketDataSymbolsAsync())
+                     .ReturnsAsync(symbols);
+
+        var quotes = new Dictionary<string, Quote>
+        {
+            { "AAPL", new Quote { C = 150.0f, O = 149.0f, H = 152.0f, L = 148.0f, T = DateTimeOffset.UtcNow.ToUnixTimeSeconds() } },
+            { "GOOGL", new Quote { C = 2500.0f, O = 2490.0f, H = 2520.0f, L = 2480.0f, T = DateTimeOffset.UtcNow.ToUnixTimeSeconds() } },
+            { "MSFT", new Quote { C = 300.0f, O = 299.0f, H = 302.0f, L = 298.0f, T = DateTimeOffset.UtcNow.ToUnixTimeSeconds() } }
+        };
+
+        foreach (var kvp in quotes)
+        {
+            _finnhubClientMock.Setup(client => client.QuoteAsync(kvp.Key))
+                              .ReturnsAsync(kvp.Value);
+            
+            _mapperMock.Setup(mapper => mapper.Map<IntradayMarketData>(kvp.Value))
+                       .Returns(new IntradayMarketData
+                       {
+                           Symbol = kvp.Key,
+                           Current = (decimal)(kvp.Value.C ?? 0),
+                           Open = (decimal)(kvp.Value.O ?? 0),
+                           High = (decimal)(kvp.Value.H ?? 0),
+                           Low = (decimal)(kvp.Value.L ?? 0),
+                           Timestamp = DateTime.UtcNow
+                       });
+        }
+
+        // Act
+        await _service.ImportIntradayMarketDataAsync();
+
+        // Assert
+        // Verify all data was added
+        Assert.True(await _dbContext.IntradayMarketData.CountAsync() >= 3);
+        Assert.Contains(_dbContext.IntradayMarketData, d => d.Symbol == "AAPL" && d.Current == 150.0m);
+        Assert.Contains(_dbContext.IntradayMarketData, d => d.Symbol == "GOOGL" && d.Current == 2500.0m);
+        Assert.Contains(_dbContext.IntradayMarketData, d => d.Symbol == "MSFT" && d.Current == 300.0m);
     }
 } 
