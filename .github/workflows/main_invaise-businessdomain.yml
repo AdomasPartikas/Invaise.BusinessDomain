@@ -37,7 +37,7 @@ jobs:
           /o:"adomaspartikas" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.opencover.xml" \
-          /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**"
+          /d:sonar.exclusions="coverage-report/**,**/bin/**,**/obj/**,**/TestResults/**,**/publish/**,**/*.dll,**/*.exe,**/*.pdb,**/APIClients/**,**/Migrations/**,**/Properties/**,**/Data/**,**/Entities/**,**/Config/**,**/Profiles/**,**/Models/**,**/Program.cs"
 
     - name: Create runsettings (OpenCover)
       run: |
