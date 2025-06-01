@@ -61,13 +61,39 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
         return Ok(portfolioStock);
     }
     
+    /// <summary>
+    /// Represents the request to create a portfolio stock.
+    /// </summary>
     public class CreatePortfolioStockRequest
     {
+        /// <summary>
+        /// The ID of the portfolio to which the stock belongs.
+        /// </summary>
         public required string PortfolioId { get; set; }
+
+        /// <summary>
+        /// The symbol of the stock.
+        /// </summary>
         public required string Symbol { get; set; }
+
+        /// <summary>
+        /// The quantity of the stock.
+        /// </summary>
         public required decimal Quantity { get; set; }
+
+        /// <summary>
+        /// The current total value of the stock.
+        /// </summary>
         public required decimal CurrentTotalValue { get; set; }
+
+        /// <summary>
+        /// The total base value of the stock.
+        /// </summary>
         public required decimal TotalBaseValue { get; set; }
+
+        /// <summary>
+        /// The percentage change in the stock value.
+        /// </summary>
         public decimal PercentageChange { get; set; }
     }
     
@@ -122,11 +148,29 @@ public class PortfolioStockController(IDatabaseService dbService) : ControllerBa
         }
     }
     
+    /// <summary>
+    /// Represents the request to update a portfolio stock.
+    /// </summary>
     public class UpdatePortfolioStockRequest
     {
+        /// <summary>
+        /// The quantity of the stock.
+        /// </summary>
         public decimal? Quantity { get; set; }
+
+        /// <summary>
+        /// The current total value of the stock.
+        /// </summary>
         public decimal? CurrentTotalValue { get; set; }
+
+        /// <summary>
+        /// The total base value of the stock.
+        /// </summary>
         public decimal? TotalBaseValue { get; set; }
+
+        /// <summary>
+        /// The percentage change in the stock value.
+        /// </summary>
         public decimal? PercentageChange { get; set; }
     }
     

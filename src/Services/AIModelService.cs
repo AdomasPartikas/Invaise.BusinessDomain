@@ -15,6 +15,11 @@ public class AIModelService : IAIModelService
     private readonly InvaiseDbContext _dbContext;
     private readonly Serilog.ILogger _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the AIModelService class
+    /// </summary>
+    /// <param name="dbContext">The database context for data access</param>
+    /// <param name="logger">The logger for recording operations and errors</param>
     public AIModelService(InvaiseDbContext dbContext, Serilog.ILogger logger)
     {
         _dbContext = dbContext;

@@ -303,8 +303,8 @@ try
 
         Log.Debug("Starting initial data import... Please wait.");
 
-        //await marketDataService.FetchAndImportHistoricalMarketDataAsync();
-        //await marketDataService.ImportCompanyDataAsync();
+        await marketDataService.FetchAndImportHistoricalMarketDataAsync();
+        await marketDataService.ImportCompanyDataAsync();
 
         Log.Debug("Initial data import completed.");
     }
@@ -315,10 +315,10 @@ try
     app.UseHangfireServer();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-    // RecurringJob.AddOrUpdate<IMarketDataService>(
-    //     "refresh-historical-data",
-    //     service => service.FetchAndImportHistoricalMarketDataAsync(),
-    //     "0 0 * * *");
+    RecurringJob.AddOrUpdate<IMarketDataService>(
+        "refresh-historical-data",
+        service => service.FetchAndImportHistoricalMarketDataAsync(),
+        "0 0 * * *");
 
     RecurringJob.AddOrUpdate<IMarketDataService>(
         "refresh-intraday-data",
@@ -330,15 +330,15 @@ try
         service => service.CheckAllModelsHealthAsync(),
         "*/1 * * * *");
 
-    // RecurringJob.AddOrUpdate<IModelPerformanceService>(
-    //     "check-model-training-status",
-    //     service => service.CheckTrainingModelsStatusAsync(),
-    //     "*/3 * * * *");
+    RecurringJob.AddOrUpdate<IModelPerformanceService>(
+        "check-model-training-status",
+        service => service.CheckTrainingModelsStatusAsync(),
+        "*/3 * * * *");
         
-    // RecurringJob.AddOrUpdate<IModelPerformanceService>(
-    //     "check-model-retraining-needs",
-    //     service => service.CheckAndInitiateRetrainingForAllModelsAsync(),
-    //     "0 */12 * * *");
+    RecurringJob.AddOrUpdate<IModelPerformanceService>(
+        "check-model-retraining-needs",
+        service => service.CheckAndInitiateRetrainingForAllModelsAsync(),
+        "0 */12 * * *");
 
     RecurringJob.AddOrUpdate<IPortfolioService>(
         "refresh-portfolios",
@@ -360,10 +360,10 @@ try
         service => service.SaveEodPortfolioPerformanceAsync(),
         "0 0 * * *"); // Run daily at midnight
         
-    // RecurringJob.AddOrUpdate<IModelPredictionService>(
-    //     "update-predictions",
-    //     service => service.RefreshAllPredictionsAsync(),
-    //     "0 */1 * * *");
+    RecurringJob.AddOrUpdate<IModelPredictionService>(
+        "update-predictions",
+        service => service.RefreshAllPredictionsAsync(),
+        "0 */1 * * *");
         
 
     // Configure the HTTP request pipeline.

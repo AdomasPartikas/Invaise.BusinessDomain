@@ -81,5 +81,11 @@ public interface IPortfolioOptimizationService
     /// <returns>Task representing the operation</returns>
     Task EnsureCompletionOfAllInProgressOptimizationsAsync();
 
+    /// <summary>
+    /// Gets the remaining cooldown time before a new optimization can be started for the specified portfolio
+    /// </summary>
+    /// <param name="userId">The user ID</param>
+    /// <param name="portfolioId">The portfolio ID</param>
+    /// <returns>The remaining cooldown time as a TimeSpan</returns>
     Task<TimeSpan> GetRemainingCoolOffTime(string userId, string portfolioId);
 } 

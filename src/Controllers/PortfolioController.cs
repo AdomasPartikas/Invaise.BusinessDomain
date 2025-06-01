@@ -54,9 +54,19 @@ public class PortfolioController(IDatabaseService dbService, IPortfolioService p
         return Ok(portfolio);
     }
     
+    /// <summary>
+    /// Represents a request to create a new portfolio.
+    /// </summary>
     public class CreatePortfolioRequest
     {
+        /// <summary>
+        /// The name of the portfolio.
+        /// </summary>
         public string Name { get; set; } = "New Portfolio";
+
+        /// <summary>
+        /// The strategy description for the portfolio.
+        /// </summary>
         public PortfolioStrategy StrategyDescription { get; set; } = PortfolioStrategy.Balanced;
     }
     
@@ -81,9 +91,19 @@ public class PortfolioController(IDatabaseService dbService, IPortfolioService p
         return CreatedAtAction(nameof(GetPortfolio), new { id = createdPortfolio.Id }, createdPortfolio);
     }
     
+    /// <summary>
+    /// Represents a request to update an existing portfolio.
+    /// </summary>
     public class UpdatePortfolioRequest
     {
+        /// <summary>
+        /// The updated name of the portfolio.
+        /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The updated strategy description for the portfolio.
+        /// </summary>
         public PortfolioStrategy StrategyDescription { get; set; }
     }
     

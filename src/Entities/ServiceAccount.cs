@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Invaise.BusinessDomain.API.Entities;
 
+/// <summary>
+/// Represents a service account entity with properties such as Id, Name, Key, Role, Permissions, Created date, and LastAuthenticated date.
+/// </summary>
 public class ServiceAccount
 {
     /// <summary>

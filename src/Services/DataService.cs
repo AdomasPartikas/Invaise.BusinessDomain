@@ -6,8 +6,16 @@ using CsvHelper.Configuration;
 
 namespace Invaise.BusinessDomain.API.Services;
 
+/// <summary>
+/// Service for managing and processing dataset operations, particularly for S&amp;P dataset transformations
+/// </summary>
 public class DataService : IDataService
 {
+    /// <summary>
+    /// Cleans and transforms the raw S&amp;P dataset into a structured format suitable for analysis.
+    /// Processes ticker data by date and flattens multi-dimensional data into individual records per symbol.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous dataset cleanup operation</returns>
     public async Task SMPDatasetCleanupAsync()
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;

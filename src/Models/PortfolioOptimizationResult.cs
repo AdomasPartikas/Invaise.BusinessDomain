@@ -85,9 +85,24 @@ public class PortfolioMetrics
     /// </summary>
     public double ExpectedReturn { get; set; }
 
+    /// <summary>
+    /// Projected Sharpe ratio for the optimized portfolio
+    /// </summary>
     public double ProjectedSharpeRatio { get; set; }
+    
+    /// <summary>
+    /// Projected mean return for the optimized portfolio
+    /// </summary>
     public double ProjectedMeanReturn { get; set; }
+    
+    /// <summary>
+    /// Projected variance for the optimized portfolio
+    /// </summary>
     public double ProjectedVariance { get; set; }
+    
+    /// <summary>
+    /// Projected expected return for the optimized portfolio
+    /// </summary>
     public double ProjectedExpectedReturn { get; set; }
 }
 

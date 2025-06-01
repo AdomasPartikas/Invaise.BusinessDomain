@@ -20,8 +20,21 @@ public interface IDatabaseService
     /// </summary>
     Task<IEnumerable<IntradayMarketData>> GetIntradayMarketDataAsync(string symbol, DateTime? start, DateTime? end);
 
+    /// <summary>
+    /// Retrieves the latest intraday market data for a specific symbol asynchronously.
+    /// </summary>
+    /// <param name="symbol">The market data symbol to retrieve the latest data for.</param>
+    /// <returns>A task that represents the asynchronous operation. 
+    /// The task result contains the latest intraday market data for the specified symbol, or null if no data is found.</returns>
     Task<IntradayMarketData?> GetLatestIntradayMarketDataAsync(string symbol);
 
+    /// <summary>
+    /// Retrieves the latest intraday market data for a specific symbol asynchronously.
+    /// </summary>
+    /// <param name="symbol">The market data symbol to retrieve the latest data for.</param>
+    /// <param name="count">The number of latest intraday market data entries to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation. 
+    /// The task result contains a collection of the latest intraday market data for the specified symbol.</returns>
     Task<IEnumerable<IntradayMarketData>?> GetLatestIntradayMarketDataAsync(string symbol, int count);
 
     /// <summary>
@@ -34,8 +47,19 @@ public interface IDatabaseService
     /// The task result contains an enumerable collection of market data for the specified symbol and date range.</returns>
     Task<IEnumerable<HistoricalMarketData>> GetHistoricalMarketDataAsync(string symbol, DateTime? start, DateTime? end);
 
+    /// <summary>
+    /// Retrieves the latest historical market data entry for a specific symbol
+    /// </summary>
+    /// <param name="symbol">The stock symbol to retrieve data for</param>
+    /// <returns>The latest historical market data entry, or null if none found</returns>
     Task<HistoricalMarketData?> GetLatestHistoricalMarketDataAsync(string symbol);
 
+    /// <summary>
+    /// Retrieves the latest historical market data entries for a specific symbol
+    /// </summary>
+    /// <param name="symbol">The stock symbol to retrieve data for</param>
+    /// <param name="count">The number of latest entries to retrieve</param>
+    /// <returns>A collection of the latest historical market data entries</returns>
     Task<IEnumerable<HistoricalMarketData>?> GetLatestHistoricalMarketDataAsync(string symbol, int count);
 
     /// <summary>
@@ -98,6 +122,10 @@ public interface IDatabaseService
     /// <returns>The updated preferences entity.</returns>
     Task<UserPreferences> UpdateUserPreferencesAsync(string userId, UserPreferences preferences);
 
+    /// <summary>
+    /// Gets all portfolios in the system
+    /// </summary>
+    /// <returns>A collection of all portfolios</returns>
     Task<IEnumerable<Portfolio>> GetAllPortfoliosAsync();
 
     /// <summary>
@@ -241,10 +269,46 @@ public interface IDatabaseService
 
     //For service account
 
+    /// <summary>
+    /// Gets a service account by its ID
+    /// </summary>
+    /// <param name="id">The service account ID</param>
+    /// <returns>The service account if found, null otherwise</returns>
     Task<ServiceAccount?> GetServiceAccountAsync(string id);
+    
+    /// <summary>
+    /// Creates a new service account
+    /// </summary>
+    /// <param name="serviceAccount">The service account entity to create</param>
+    /// <returns>A task representing the asynchronous operation</returns>
     Task CreateServiceAccountAsync(ServiceAccount serviceAccount);
+    
+    /// <summary>
+    /// Updates an existing service account
+    /// </summary>
+    /// <param name="id">The service account ID</param>
+    /// <param name="account">The updated service account entity</param>
+    /// <returns>The updated service account entity</returns>
     Task<ServiceAccount> UpdateServiceAccountAsync(string id, ServiceAccount account);
+    
+    /// <summary>
+    /// Gets a transaction by its ID
+    /// </summary>
+    /// <param name="id">The transaction ID</param>
+    /// <returns>The transaction if found, null otherwise</returns>
     Task<Transaction?> GetTransactionByIdAsync(string id);
+    
+    /// <summary>
+    /// Cancels a transaction by its ID
+    /// </summary>
+    /// <param name="id">The transaction ID to cancel</param>
+    /// <returns>A task representing the asynchronous operation</returns>
     Task CancelTransactionAsync(string id);
+    
+    /// <summary>
+    /// Gets the latest log entries from the system
+    /// </summary>
+    /// <param name="count">The number of latest log entries to retrieve</param>
+    /// <returns>A collection of the latest log entries</returns>
     Task<IEnumerable<Log>> GetLatestLogsAsync(int count);
 }

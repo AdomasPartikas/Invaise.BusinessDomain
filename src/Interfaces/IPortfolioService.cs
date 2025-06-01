@@ -7,6 +7,11 @@ namespace Invaise.BusinessDomain.API.Interfaces;
 /// </summary>
 public interface IPortfolioService
 {
+    /// <summary>
+    /// Refreshes the calculated values and metrics for all portfolios in the system.
+    /// Updates portfolio performance, valuations, and other derived metrics.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous refresh operation</returns>
     Task RefreshAllPortfoliosAsync();
     
     /// <summary>

@@ -58,7 +58,7 @@ public class ModelPredictionService(
                 
             foreach (var prediction in latestPredictions.Where(p => p != null))
             {
-                result[prediction.ModelSource] = prediction;
+                result[prediction!.ModelSource] = prediction;
             }
             
             return result;
@@ -178,6 +178,9 @@ public class ModelPredictionService(
         }
     }
 
+    /// <summary>
+    /// Refreshes predictions for all symbols available in the database.
+    /// </summary>
     public async Task RefreshAllPredictionsAsync()
     {
         try

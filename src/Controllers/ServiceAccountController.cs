@@ -14,6 +14,11 @@ namespace Invaise.BusinessDomain.API.Controllers;
 [Authorize("Admin")]
 public class ServiceAccountController(IAuthService authService) : ControllerBase
 {   
+    /// <summary>
+    /// Creates a new service account with the specified name and permissions.
+    /// </summary>
+    /// <param name="model">The data transfer object containing the name and permissions for the service account.</param>
+    /// <returns>The created service account along with its key.</returns>
     [HttpPost]
     public async Task<ActionResult<ServiceAccountDto>> CreateServiceAccount([FromBody] CreateServiceAccountDto model)
     {

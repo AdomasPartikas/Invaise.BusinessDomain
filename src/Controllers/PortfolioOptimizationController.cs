@@ -7,6 +7,11 @@ using Invaise.BusinessDomain.API.Enums;
 
 namespace Invaise.BusinessDomain.API.Controllers;
 
+/// <summary>
+/// Controller for portfolio optimization operations.
+/// </summary>
+/// <param name="portfolioOptimizationService">Service for portfolio optimization operations.</param>
+/// <param name="logger">Logger instance for logging.</param>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]

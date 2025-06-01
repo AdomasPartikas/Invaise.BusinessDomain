@@ -55,6 +55,11 @@ public class MarketDataController(IDatabaseService dbService, IMarketDataService
     }
 
 
+    /// <summary>
+    /// Retrieves the latest intraday market data for the specified symbol.
+    /// </summary>
+    /// <param name="symbol">The symbol to filter the market data.</param>
+    /// <returns>The latest intraday market data for the specified symbol.</returns>
     [HttpGet("GetLatestIntradayMarketData")]
     [ProducesResponseType(typeof(IntradayMarketData), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -68,6 +73,12 @@ public class MarketDataController(IDatabaseService dbService, IMarketDataService
         return Ok(results);
     }
 
+    /// <summary>
+    /// Retrieves the latest intraday market data for the specified symbol with a specified count.
+    /// </summary>
+    /// <param name="symbol">The symbol to filter the market data.</param>
+    /// <param name="count">The number of latest intraday market data entries to retrieve.</param>
+    /// <returns>A list of intraday market data matching the query parameters.</returns>
     [HttpGet("GetLatestIntradayMarketDataWithCount")]
     [ProducesResponseType(typeof(IEnumerable<IntradayMarketData>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -84,6 +95,11 @@ public class MarketDataController(IDatabaseService dbService, IMarketDataService
         return Ok(results);
     }
 
+    /// <summary>
+    /// Retrieves the latest historical market data for the specified symbol.
+    /// </summary>
+    /// <param name="symbol">The symbol to filter the market data.</param>
+    /// <returns>The latest historical market data for the specified symbol.</returns>
     [HttpGet("GetLatestHistoricalMarketData")]
     [ProducesResponseType(typeof(HistoricalMarketData), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,6 +113,12 @@ public class MarketDataController(IDatabaseService dbService, IMarketDataService
         return Ok(results);
     }
 
+    /// <summary>
+    /// Retrieves the latest historical market data for the specified symbol with a specified count.
+    /// </summary>
+    /// <param name="symbol">The symbol to filter the market data.</param>
+    /// <param name="count">The number of latest historical market data entries to retrieve.</param>
+    /// <returns>A list of historical market data matching the query parameters.</returns>
     [HttpGet("GetLatestHistoricalMarketDataWithCount")]
     [ProducesResponseType(typeof(HistoricalMarketData), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -129,6 +151,10 @@ public class MarketDataController(IDatabaseService dbService, IMarketDataService
         return Ok(symbols);
     }
 
+    /// <summary>
+    /// Checks if the market is currently open.
+    /// </summary>
+    /// <returns>A boolean indicating whether the market is open.</returns>
     [HttpGet("IsMarketOpen")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> IsMarketOpen()

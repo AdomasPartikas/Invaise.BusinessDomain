@@ -1,5 +1,8 @@
 namespace Invaise.BusinessDomain.API.Utils;
 
+/// <summary>
+/// Provides utility methods for converting date and time values.
+/// </summary>
 public static class DateTimeConverter
 {
     /// <summary>

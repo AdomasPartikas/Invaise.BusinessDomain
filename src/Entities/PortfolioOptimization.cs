@@ -91,9 +91,21 @@ public class PortfolioOptimization
     /// </summary>
     public double ExpectedReturn { get; set; }
 
+    /// <summary>
+    /// Gets or sets the projected Sharpe ratio for the portfolio
+    /// </summary>
     public double ProjectedSharpeRatio { get; set; }
+    /// <summary>
+    /// Gets or sets the projected mean return for the portfolio
+    /// </summary>
     public double ProjectedMeanReturn { get; set; }
+    /// <summary>
+    /// Gets or sets the projected variance for the portfolio
+    /// </summary>
     public double ProjectedVariance { get; set; }
+    /// <summary>
+    /// Gets or sets the projected expected return for the portfolio
+    /// </summary>
     public double ProjectedExpectedReturn { get; set; }
     
     /// <summary>

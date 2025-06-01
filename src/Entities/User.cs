@@ -65,9 +65,23 @@ public class User
     [Required]
     public bool IsActive { get; set; } = true;
 
-
+    /// <summary>
+    /// Gets or sets the user preferences.
+    /// </summary>
     public UserPreferences? Preferences { get; set; }
+
+    /// <summary>
+    /// Gets or sets the personal information of the user.
+    /// </summary>
     public UserPersonalInfo? PersonalInfo { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the collection of portfolios associated with the user.
+    /// </summary>
     public ICollection<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
+
+    /// <summary>
+    /// Gets or sets the collection of transactions associated with the user.
+    /// </summary>
     public List<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

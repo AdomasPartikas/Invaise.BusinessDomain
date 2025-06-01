@@ -22,9 +22,26 @@ public interface IAuthService
     /// <returns>The authentication response containing token and user information.</returns>
     Task<AuthResponse> LoginAsync(LoginModel login);
 
+    /// <summary>
+    /// Refreshes the authentication token using the provided refresh model.
+    /// </summary>
+    /// <param name="model">The refresh model containing the necessary data to refresh the token.</param>
+    /// <returns>The authentication response containing the new token and user information.</returns>
     Task<AuthResponse> RefreshToken(RefreshModel model);
 
+    /// <summary>
+    /// Authenticates a service account using the provided login model.
+    /// </summary>
+    /// <param name="model">The login model containing service account credentials.</param>
+    /// <returns>The authentication response containing token and service account information.</returns>
     Task<AuthResponse> ServiceLoginAsync(ServiceLoginModel model);
+
+    /// <summary>
+    /// Registers a new service account with the specified name and permissions.
+    /// </summary>
+    /// <param name="name">The name of the service account.</param>
+    /// <param name="permissions">The permissions assigned to the service account.</param>
+    /// <returns>The service account data transfer object containing account details.</returns>
     Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions);
     
     /// <summary>
@@ -56,6 +73,10 @@ public interface IAuthService
     /// <returns>The hashed email.</returns>
     string HashEmail(string email);
 
+    /// <summary>
+    /// Generates a secure key for cryptographic operations.
+    /// </summary>
+    /// <returns>A securely generated key as a string.</returns>
     string GenerateSecureKey();
 
     /// <summary>

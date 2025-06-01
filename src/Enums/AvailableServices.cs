@@ -1,4 +1,7 @@
 namespace Invaise.BusinessDomain.API.Enums;
+/// <summary>
+/// Specifies the available services in the BusinessDomain API.
+/// </summary>
 public enum AvailableServices
 {
     /// <summary>

@@ -1,4 +1,7 @@
 namespace Invaise.BusinessDomain.API.Enums;
+/// <summary>
+/// Specifies the available AI models.
+/// </summary>
 public enum AvailableAIModels
 {
     /// <summary>

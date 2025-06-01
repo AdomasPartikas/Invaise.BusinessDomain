@@ -88,5 +88,8 @@ public class UserPersonalInfo
     /// </summary>
     public DateTime? UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Gets or sets the user associated with this personal information.
+    /// </summary>
     public virtual User User { get; set; } = null!;
 }

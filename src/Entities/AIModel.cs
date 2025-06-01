@@ -4,6 +4,9 @@ using Invaise.BusinessDomain.API.Enums;
 namespace Invaise.BusinessDomain.API.Entities;
 
 
+/// <summary>
+/// Represents an AI model with various properties such as name, status, and timestamps.
+/// </summary>
 public class AIModel
 {
     /// <summary>

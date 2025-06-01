@@ -36,7 +36,11 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
         _requiredPermissions = permissions;
     }
     
-    // Additional constructor for permission-only authorization
+    /// <summary>
+    /// Creates an authorization attribute that requires specific permissions.
+    /// </summary>
+    /// <param name="permissions">The required permissions to access the resource.</param>
+    /// <returns>An <see cref="AuthorizeAttribute"/> configured with the specified permissions.</returns>
     public static AuthorizeAttribute WithPermissions(params string[] permissions)
     {
         return new AuthorizeAttribute([], permissions);

@@ -47,6 +47,9 @@ public class PortfolioService(IDatabaseService dbService, InvaiseDbContext dbCon
         }
     }
 
+    /// <summary>
+    /// Refreshes all portfolios by updating their associated stocks with the latest market data.
+    /// </summary>
     public async Task RefreshAllPortfoliosAsync()
     {
         var portfolios = await dbService.GetAllPortfoliosAsync();

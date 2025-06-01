@@ -12,9 +12,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Invaise.BusinessDomain.API.Services;
 
+/// <summary>
+/// Enumeration of different types of API calls that can be made to financial data providers
+/// </summary>
 public enum CallType
 {
+    /// <summary>
+    /// Call to retrieve daily market data for a stock symbol
+    /// </summary>
     MarketDataDaily,
+    
+    /// <summary>
+    /// Call to retrieve company profile information for a stock symbol
+    /// </summary>
     CompanyProfile
 }
 
@@ -23,6 +33,11 @@ public enum CallType
 /// </summary>
 public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, InvaiseDbContext context, IKaggleService kaggleService, IDataService dataService, IDatabaseService dbService, Serilog.ILogger logger) : IMarketDataService
 {
+    /// <summary>
+    /// Downloads historical market data from Kaggle, processes it, and imports it into the database.
+    /// Only imports new data that doesn't already exist in the database.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous import operation</returns>
     public async Task FetchAndImportHistoricalMarketDataAsync()
     {
         await kaggleService.DownloadDatasetAsync(GlobalConstants.KaggleSmpDataset);
@@ -89,6 +104,10 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
         }
     }
 
+    /// <summary>
+    /// Checks if the US stock market is currently open for trading
+    /// </summary>
+    /// <returns>True if the market is open, false if closed or if unable to determine status</returns>
     public async Task<bool> IsMarketOpenAsync()
     {
         try
@@ -156,6 +175,11 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
         return null;
     }
 
+    /// <summary>
+    /// Imports current intraday market data for all tracked symbols, but only if the market is open.
+    /// Updates the database with the latest quotes from the financial data provider.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous import operation</returns>
     public async Task ImportIntradayMarketDataAsync()
     {
 
@@ -195,6 +219,11 @@ public class MarketDataService(IFinnhubClient finnhubClient, IMapper mapper, Inv
         await context.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Imports or updates company profile information for all tracked symbols.
+    /// Fetches company data from the financial data provider and stores it in the database.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous import operation</returns>
     public async Task ImportCompanyDataAsync()
     {
         var symbols = (await dbService.GetAllUniqueMarketDataSymbolsAsync())

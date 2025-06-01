@@ -10,6 +10,10 @@ namespace Invaise.BusinessDomain.API.Profiles;
 /// </summary>
 public class PortfolioOptimizationProfile : Profile
 {
+    /// <summary>
+    /// Initializes a new instance of the PortfolioOptimizationProfile class and configures mappings
+    /// between optimization-related entities and DTOs
+    /// </summary>
     public PortfolioOptimizationProfile()
     {
         CreateMap<OptimizationResponse, PortfolioOptimizationResult>()

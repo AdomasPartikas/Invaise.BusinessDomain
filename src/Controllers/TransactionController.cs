@@ -49,13 +49,34 @@ public class TransactionController(IDatabaseService dbService) : ControllerBase
         return Ok(transactions);
     }
 
+    /// <summary>
+    /// Represents a request to create a new transaction.
+    /// </summary>
     public class CreateTransactionRequest
     {
+        /// <summary>
+        /// Gets or sets the portfolio ID associated with the transaction.
+        /// </summary>
         public string PortfolioId { get; set; } = string.Empty;
+        /// <summary>
+        /// Gets or sets the symbol associated with the transaction.
+        /// </summary>
         public string Symbol { get; set; } = string.Empty;
+        /// <summary>
+        /// Gets or sets the quantity of shares involved in the transaction.
+        /// </summary>
         public decimal Quantity { get; set; }
+        /// <summary>
+        /// Gets or sets the price per share for the transaction.
+        /// </summary>
         public decimal PricePerShare { get; set; }
+        /// <summary>
+        /// Gets or sets the type of the transaction (e.g., Buy or Sell).
+        /// </summary>
         public TransactionType Type { get; set; } = TransactionType.Buy;
+        /// <summary>
+        /// Gets or sets the date of the transaction.
+        /// </summary>
         public DateTime? TransactionDate { get; set; }
     }
 

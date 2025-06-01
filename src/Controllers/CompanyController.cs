@@ -56,12 +56,30 @@ public class CompanyController(IDatabaseService dbService) : ControllerBase
         return Ok(company);
     }
     
+    /// <summary>
+    /// Represents the request payload for creating a new company.
+    /// </summary>
     public class CreateCompanyRequest
     {
+        /// <summary>
+        /// Gets or sets the stock symbol of the company.
+        /// </summary>
         public required string Symbol { get; set; }
+        /// <summary>
+        /// Gets or sets the name of the company.
+        /// </summary>
         public required string Name { get; set; }
+        /// <summary>
+        /// Gets or sets the industry of the company.
+        /// </summary>
         public string? Industry { get; set; }
+        /// <summary>
+        /// Gets or sets the description of the company.
+        /// </summary>
         public string Description { get; set; } = string.Empty;
+        /// <summary>
+        /// Gets or sets the country of the company.
+        /// </summary>
         public required string Country { get; set; }
     }
     
@@ -92,11 +110,26 @@ public class CompanyController(IDatabaseService dbService) : ControllerBase
         return CreatedAtAction(nameof(GetCompanyById), new { id = createdCompany.StockId }, createdCompany);
     }
     
+    /// <summary>
+    /// Represents the request payload for updating an existing company.
+    /// </summary>
     public class UpdateCompanyRequest
     {
+        /// <summary>
+        /// Gets or sets the name of the company.
+        /// </summary>
         public string? Name { get; set; }
+        /// <summary>
+        /// Gets or sets the industry of the company.
+        /// </summary>
         public string? Industry { get; set; }
+        /// <summary>
+        /// Gets or sets the description of the company.
+        /// </summary>
         public string? Description { get; set; }
+        /// <summary>
+        /// Gets or sets the country of the company.
+        /// </summary>
         public string? Country { get; set; }
     }
     

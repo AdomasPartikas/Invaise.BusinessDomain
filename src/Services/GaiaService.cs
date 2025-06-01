@@ -74,7 +74,7 @@ public class GaiaService(
             var heat = mapper.Map<Heat>(response);
 
             var prediction = response.Combined_heat.Predicted_price;
-            var targetDate = DateTime.Parse(response.Combined_heat.Prediction_target);
+            var targetDate = DateTime.Parse(response.Combined_heat.Prediction_target, System.Globalization.CultureInfo.InvariantCulture);
 
             return (heat, targetDate, prediction);
         }

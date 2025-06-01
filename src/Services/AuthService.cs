@@ -121,6 +121,12 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         };
     }
 
+    /// <summary>
+    /// Authenticates a service account using ID and API key
+    /// </summary>
+    /// <param name="model">The service login model containing ID and key</param>
+    /// <returns>Authentication response with JWT token and service account information</returns>
+    /// <exception cref="InvalidOperationException">Thrown when credentials are invalid or service account not found</exception>
     public async Task<AuthResponse> ServiceLoginAsync(ServiceLoginModel model)
     {
         // Validate the request
@@ -152,6 +158,12 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         };
     }
 
+    /// <summary>
+    /// Refreshes an existing JWT token to extend the user's session
+    /// </summary>
+    /// <param name="model">The refresh model containing the current token</param>
+    /// <returns>New authentication response with refreshed JWT token</returns>
+    /// <exception cref="InvalidOperationException">Thrown when token is invalid or user not found</exception>
     public async Task<AuthResponse> RefreshToken(RefreshModel model)
     {
         // Validate the request
@@ -187,6 +199,12 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         };
     }
 
+    /// <summary>
+    /// Creates a new service account with specified permissions
+    /// </summary>
+    /// <param name="name">The name of the service account</param>
+    /// <param name="permissions">Array of permissions to grant to the service account</param>
+    /// <returns>Service account DTO containing the unhashed API key</returns>
     public async Task<ServiceAccountDto> ServiceRegisterAsync(string name, string[] permissions)
     {        
         // Create new service account
@@ -246,6 +264,12 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         return (tokenHandler.WriteToken(token), expiresAt);
     }
 
+    /// <summary>
+    /// Generates a JWT token for a service account
+    /// </summary>
+    /// <param name="serviceAccount">The service account to generate token for</param>
+    /// <returns>Tuple containing the JWT token and its expiration date</returns>
+    /// <exception cref="InvalidOperationException">Thrown when JWT configuration is missing</exception>
     public (string token, DateTime expiresAt) GenerateJwtToken(ServiceAccount serviceAccount)
     {
         var jwtKey = configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not configured");
@@ -315,6 +339,10 @@ public class AuthService(IDatabaseService dbService, IConfiguration configuratio
         }
     }
 
+    /// <summary>
+    /// Generates a secure random key for service accounts
+    /// </summary>
+    /// <returns>A secure random key string</returns>
     public string GenerateSecureKey()
     {
         return Guid.NewGuid().ToString("N");

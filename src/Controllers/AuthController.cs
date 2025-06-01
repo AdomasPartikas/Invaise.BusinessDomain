@@ -80,6 +80,11 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Authenticates a service user.
+    /// </summary>
+    /// <param name="model">The service login credentials.</param>
+    /// <returns>The authentication response with token and user information.</returns>
     [HttpPost("service/login")]
     [AllowAnonymous]
     public async Task<IActionResult> ServiceLogin([FromBody] ServiceLoginModel model)

@@ -29,5 +29,10 @@ public interface IMarketDataService
     /// Imports daily market data into the database.
     /// </summary>
     Task ImportIntradayMarketDataAsync();
+    
+    /// <summary>
+    /// Checks if the US stock market is currently open for trading
+    /// </summary>
+    /// <returns>True if the market is open, false if closed or if unable to determine status</returns>
     Task<bool> IsMarketOpenAsync();
 }

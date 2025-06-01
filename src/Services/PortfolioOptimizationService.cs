@@ -30,6 +30,12 @@ public class PortfolioOptimizationService(
                            o.Status == PortfolioOptimizationStatus.InProgress));
     }
 
+    /// <summary>
+    /// Calculates the remaining cool-off time for a portfolio optimization.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="portfolioId">The ID of the portfolio.</param>
+    /// <returns>The remaining cool-off time as a TimeSpan.</returns>
     public async Task<TimeSpan> GetRemainingCoolOffTime(string userId, string portfolioId)
     {
         var optimization = await dbContext.PortfolioOptimizations
@@ -569,6 +575,9 @@ public class PortfolioOptimizationService(
         }
     }
 
+    /// <summary>
+    /// Ensures that all in-progress portfolio optimizations are completed by checking and updating their transaction statuses.
+    /// </summary>
     public async Task EnsureCompletionOfAllInProgressOptimizationsAsync()
     {
         try

@@ -4,8 +4,14 @@ using Invaise.BusinessDomain.API.GaiaAPIClient;
 
 namespace Invaise.BusinessDomain.API.Profiles;
 
+/// <summary>
+/// AutoMapper profile for mapping between PredictionResponse and Heat entities
+/// </summary>
 public class HeatProfile : Profile
 {
+    /// <summary>
+    /// Initializes a new instance of the HeatProfile class and configures mappings
+    /// </summary>
     public HeatProfile()
     {
         CreateMap<PredictionResponse, Heat>()

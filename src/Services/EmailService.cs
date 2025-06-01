@@ -6,6 +6,12 @@ using MimeKit;
 
 namespace Invaise.BusinessDomain.API.Services
 {
+    /// <summary>
+    /// Service for sending email notifications using SMTP configuration.
+    /// Handles user registration confirmations and password reset emails.
+    /// </summary>
+    /// <param name="configuration">Application configuration containing SMTP settings</param>
+    /// <param name="logger">Logger for recording email operations and errors</param>
     public class EmailService(IConfiguration configuration, Serilog.ILogger logger) : IEmailService
     {
 
@@ -18,6 +24,12 @@ namespace Invaise.BusinessDomain.API.Services
         private readonly string senderName = configuration["Email:SenderName"] ?? throw new ArgumentNullException("Sender name is not configured.");
         private readonly bool useAuthentication = bool.Parse(configuration["Email:UseAuthentication"] ?? throw new ArgumentNullException("SMTP authentication setting is not configured."));
 
+        /// <summary>
+        /// Sends a welcome email to newly registered users confirming their account creation
+        /// </summary>
+        /// <param name="to">The recipient's email address</param>
+        /// <param name="username">The username of the newly registered user</param>
+        /// <returns>A task that represents the asynchronous email sending operation</returns>
         public async Task SendRegistrationConfirmationEmailAsync(string to, string username)
         {
             var subject = "Welcome to Invaise!";
@@ -30,6 +42,13 @@ namespace Invaise.BusinessDomain.API.Services
             await SendEmailAsync(to, subject, body);
         }
 
+        /// <summary>
+        /// Sends a password reset email containing a temporary password to the user
+        /// </summary>
+        /// <param name="to">The recipient's email address</param>
+        /// <param name="username">The username requesting the password reset</param>
+        /// <param name="temporaryPassword">The temporary password generated for the user</param>
+        /// <returns>A task that represents the asynchronous email sending operation</returns>
         public async Task SendPasswordResetEmailAsync(string to, string username, string temporaryPassword)
         {
             var subject = "Invaise - Password Reset";

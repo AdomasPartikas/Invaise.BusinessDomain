@@ -40,16 +40,46 @@ public class InvaiseDbContext : DbContext
     /// </summary>
     public DbSet<IntradayMarketData> IntradayMarketData { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the collection of companies in the database.
+    /// </summary>
     public DbSet<Company> Companies { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of portfolios in the database.
+    /// </summary>
     public DbSet<Portfolio> Portfolios { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of portfolio stocks in the database.
+    /// </summary>
     public DbSet<PortfolioStock> PortfolioStocks { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of transactions in the database.
+    /// </summary>
     public DbSet<Transaction> Transactions { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of portfolio health records in the database.
+    /// </summary>
     public DbSet<PortfolioHealth> PortfolioHealth { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of log events in the database.
+    /// </summary>
     public DbSet<Log> LogEvents { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of AI models in the database.
+    /// </summary>
     public DbSet<AIModel> AIModels { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of predictions in the database.
+    /// </summary>
     public DbSet<Prediction> Predictions { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of heat records in the database.
+    /// </summary>
     public DbSet<Heat> Heats { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the collection of service accounts in the database.
+    /// </summary>
     public DbSet<ServiceAccount> ServiceAccounts { get; set; } = null!;
     
     /// <summary>

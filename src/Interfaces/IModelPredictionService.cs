@@ -11,6 +11,11 @@ namespace Invaise.BusinessDomain.API.Interfaces;
 public interface IModelPredictionService
 {
 
+    /// <summary>
+    /// Refreshes predictions for all symbols from all available AI models.
+    /// This method updates the prediction cache with the latest forecasts.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous refresh operation</returns>
     Task RefreshAllPredictionsAsync();
 
     /// <summary>
