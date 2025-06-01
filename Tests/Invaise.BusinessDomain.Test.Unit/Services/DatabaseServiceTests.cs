@@ -1236,6 +1236,7 @@ public class DatabaseServiceTests : TestBase, IDisposable
             Name = "Updated Test Service",
             Key = "updated-key",
             Role = "Service",
+            Permissions = new[] { "read", "write" },
             Created = DateTime.UtcNow.AddDays(-5)
         };
 
@@ -1245,12 +1246,15 @@ public class DatabaseServiceTests : TestBase, IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal("Updated Test Service", result.Name);
-        Assert.Equal("updated-key", result.Key);
+        Assert.Equal("test-key", result.Key);
+        Assert.Equal(new[] { "read", "write" }, result.Permissions);
+        Assert.True(result.LastAuthenticated.HasValue);
         
         var updatedInDb = await _dbContext.ServiceAccounts.FindAsync(serviceAccountId);
         Assert.NotNull(updatedInDb);
         Assert.Equal("Updated Test Service", updatedInDb.Name);
-        Assert.Equal("updated-key", updatedInDb.Key);
+        Assert.Equal("test-key", updatedInDb.Key);
+        Assert.Equal(new[] { "read", "write" }, updatedInDb.Permissions);
     }
 
     // Log Tests
