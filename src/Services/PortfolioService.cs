@@ -212,7 +212,7 @@ public class PortfolioService(IDatabaseService dbService, InvaiseDbContext dbCon
             };
             
             // Generate the PDF
-            var document = new PortfolioPerformanceDocument(reportModel);
+            var document = new PortfolioPerformanceDocumentationService(reportModel);
             return document.GeneratePdf();
         }
         catch (Exception ex)

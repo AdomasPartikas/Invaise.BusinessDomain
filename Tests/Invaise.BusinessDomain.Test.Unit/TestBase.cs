@@ -1,17 +1,19 @@
+using Microsoft.Extensions.Logging;
+
 namespace Invaise.BusinessDomain.Test.Unit;
 
 public abstract class TestBase
 {
     protected readonly Fixture _fixture;
     protected readonly IFixture _autoFixture;
-    protected readonly Mock<ILogger> _loggerMock;
+    protected readonly Mock<Microsoft.Extensions.Logging.ILogger> _loggerMock;
     protected readonly Mock<IConfiguration> _configurationMock;
 
     public TestBase()
     {
         _fixture = new Fixture();
         _autoFixture = new Fixture().Customize(new AutoMoqCustomization());
-        _loggerMock = new Mock<ILogger>();
+        _loggerMock = new Mock<Microsoft.Extensions.Logging.ILogger>();
         _configurationMock = new Mock<IConfiguration>();
         
         // Configure common IConfiguration behavior
