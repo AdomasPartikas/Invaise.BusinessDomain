@@ -383,6 +383,12 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.MapGet("/health", async context =>
+    {
+        await context.Response.WriteAsync("Healthy");
+    });
+
+
     app.MapControllers();
 
     app.UseSwagger();
