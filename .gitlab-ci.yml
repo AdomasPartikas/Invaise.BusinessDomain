@@ -8,7 +8,8 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
 before_script:
-  - dotnet restore
+  - dotnet restore src/Invaise.BusinessDomain.API.csproj
+  - dotnet restore Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj
 
 build:
   stage: build
