@@ -1,0 +1,21 @@
+stages:
+  - build
+  - test
+
+image: mcr.microsoft.com/dotnet/sdk:8.0
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+before_script:
+  - dotnet restore
+
+build:
+  stage: build
+  script:
+    - dotnet build src/Invaise.BusinessDomain.API.csproj -c Release
+
+test:
+  stage: test
+  script:
+    - dotnet test Tests/Invaise.BusinessDomain.Test.Unit/Invaise.BusinessDomain.Test.Unit.csproj --configuration Release
